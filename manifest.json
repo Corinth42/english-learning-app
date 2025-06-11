@@ -1,0 +1,42 @@
+{
+    "name": "英語学習アプリ - EnVocab Pro",
+    "short_name": "EnVocab",
+    "description": "AI搭載の次世代英語学習アプリ。シャドーイング、単語学習、British English音声でC1レベルまで対応",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1f77b4",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "ja",
+    "icons": [
+      {
+        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%231f77b4'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='40' font-family='Arial'%3E📚%3C/text%3E%3C/svg%3E",
+        "sizes": "192x192",
+        "type": "image/svg+xml",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%231f77b4'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='40' font-family='Arial'%3E📚%3C/text%3E%3C/svg%3E",
+        "sizes": "512x512",
+        "type": "image/svg+xml",
+        "purpose": "any maskable"
+      }
+    ],
+    "categories": ["education", "productivity", "books"],
+    "screenshots": [
+      {
+        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 844'%3E%3Crect width='390' height='844' fill='%23f8f9fa'/%3E%3Ctext x='195' y='100' text-anchor='middle' fill='%231f77b4' font-size='24' font-family='Arial'%3E📚 英語学習アプリ%3C/text%3E%3Crect x='20' y='150' width='350' height='200' rx='10' fill='white' stroke='%231f77b4' stroke-width='2'/%3E%3Ctext x='195' y='200' text-anchor='middle' fill='%23333' font-size='14'%3EAI生成コンテンツで%3C/text%3E%3Ctext x='195' y='220' text-anchor='middle' fill='%23333' font-size='14'%3E効率的な英語学習%3C/text%3E%3Ctext x='195' y='280' text-anchor='middle' fill='%23333' font-size='16'%3E🔊 British English%3C/text%3E%3Ctext x='195' y='320' text-anchor='middle' fill='%23333' font-size='16'%3E📝 シャドーイング練習%3C/text%3E%3C/svg%3E",
+        "sizes": "390x844",
+        "type": "image/svg+xml",
+        "form_factor": "narrow"
+      }
+    ],
+    "features": [
+      "AI-powered content generation",
+      "British English TTS",
+      "Offline vocabulary practice",
+      "Progress tracking",
+      "Swipe gestures"
+    ]
+  }

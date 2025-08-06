@@ -8,6 +8,8 @@ from pathlib import Path
 import random
 import google.generativeai as genai
 from dotenv import load_dotenv
+import html
+import re
 
 # 環境変数読み込み
 load_dotenv()
@@ -264,61 +266,122 @@ def show_available_voices():
     st.components.v1.html(html_code, height=300)
 
 def play_text_to_speech(text, rate=1.0):
-    """ブラウザ標準TTSで音声再生"""
-    # 特殊文字をエスケープ
-    escaped_text = text.replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
+    """ブラウザ標準TTSで音声再生（モバイル最適化）"""
+    # HTMLエスケープ処理を強化
+    import html
+    escaped_text = html.escape(text).replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
     
-    # British English音声設定のJavaScript
+    # モバイル対応＋高品質音声設定のJavaScript
     html_code = f"""
     <script>
-        function playTTS() {{
+        function playTTSOptimized() {{
             // 既存の音声を停止
             window.speechSynthesis.cancel();
             
             const utterance = new SpeechSynthesisUtterance("{escaped_text}");
             
-            // British English設定
+            // British English音声設定（最適化）
             utterance.lang = 'en-GB';
             utterance.rate = {rate};
-            utterance.pitch = 1.0;
+            utterance.pitch = 0.9;  // 少し低めで自然に
             utterance.volume = 1.0;
             
-            // 利用可能な音声を取得してBritish Englishを優先選択
-            const voices = window.speechSynthesis.getVoices();
-            const britishVoice = voices.find(voice => 
-                voice.lang.includes('en-GB') || 
-                voice.name.toLowerCase().includes('british') ||
-                voice.name.toLowerCase().includes('uk')
-            );
+            // iOS Safari対応：ユーザージェスチャー内で実行
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
             
-            if (britishVoice) {{
-                utterance.voice = britishVoice;
-                console.log('Using British voice:', britishVoice.name);
-            }} else {{
-                console.log('British voice not found, using default');
+            // 音声選択の最適化
+            function selectOptimalVoice() {{
+                const voices = window.speechSynthesis.getVoices();
+                console.log('Available voices:', voices.map(v => `${{v.name}} (${{v.lang}})`));
+                
+                // British English音声の優先順位
+                const preferredVoices = [
+                    'Daniel',           // macOS British male
+                    'Kate',            // macOS British female  
+                    'Oliver',          // macOS British male
+                    'Serena',          // macOS British female
+                    'Google UK English Female',  // Chrome
+                    'Google UK English Male',    // Chrome
+                    'Microsoft Hazel - English (Great Britain)', // Windows
+                    'Microsoft George - English (Great Britain)' // Windows
+                ];
+                
+                // 最適な音声を検索
+                for (const preferred of preferredVoices) {{
+                    const voice = voices.find(v => 
+                        v.name.includes(preferred) || 
+                        (v.lang.includes('en-GB') && v.name.includes(preferred.split(' ')[0]))
+                    );
+                    if (voice) {{
+                        console.log('Selected voice:', voice.name);
+                        return voice;
+                    }}
+                }}
+                
+                // フォールバック：en-GB音声
+                const gbVoice = voices.find(v => v.lang.includes('en-GB'));
+                if (gbVoice) {{
+                    console.log('Fallback to GB voice:', gbVoice.name);
+                    return gbVoice;
+                }}
+                
+                // 最終フォールバック：英語音声
+                const enVoice = voices.find(v => v.lang.startsWith('en'));
+                console.log('Final fallback:', enVoice ? enVoice.name : 'default');
+                return enVoice;
             }}
             
-            // エラーハンドリング
+            const selectedVoice = selectOptimalVoice();
+            if (selectedVoice) {{
+                utterance.voice = selectedVoice;
+            }}
+            
+            // エラーハンドリング強化
             utterance.onerror = function(event) {{
                 console.error('Speech synthesis error:', event.error);
+                if (event.error === 'network') {{
+                    alert('🌐 ネットワークエラー：インターネット接続を確認してください');
+                }} else if (event.error === 'not-allowed') {{
+                    alert('🔊 音声再生が許可されていません。設定を確認してください');
+                }} else {{
+                    console.warn('Speech error, but continuing...');
+                }}
             }};
             
             utterance.onend = function() {{
-                console.log('Speech finished');
+                console.log('Speech synthesis completed');
             }};
             
-            // 音声再生
-            window.speechSynthesis.speak(utterance);
+            utterance.onstart = function() {{
+                console.log('Speech synthesis started');
+            }};
+            
+            // iOS/Safari対応：短い遅延を追加
+            if (isIOS || isSafari) {{
+                setTimeout(() => {{
+                    window.speechSynthesis.speak(utterance);
+                }}, 100);
+            }} else {{
+                window.speechSynthesis.speak(utterance);
+            }}
         }}
         
-        // 音声リストが読み込まれるまで少し待つ
-        if (window.speechSynthesis.getVoices().length === 0) {{
-            window.speechSynthesis.onvoiceschanged = function() {{
-                playTTS();
-            }};
-        }} else {{
-            playTTS();
+        // 音声リストの読み込み待機
+        function initializeTTS() {{
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length === 0) {{
+                // 音声リストの読み込み完了を待機
+                window.speechSynthesis.onvoiceschanged = function() {{
+                    playTTSOptimized();
+                }};
+            }} else {{
+                playTTSOptimized();
+            }}
         }}
+        
+        // iOS Safari対応：ユーザージェスチャーのコンテキストで実行
+        initializeTTS();
     </script>
     """
     
@@ -408,33 +471,43 @@ def parse_generated_content(content):
     return parsed_content
 
 def highlight_words_in_sentence(sentence, words_dict, word_master):
-    """文章内の学習対象単語をハイライト"""
-    if not words_dict:
-        return sentence
+    """文章内の学習対象単語をハイライト（HTMLエスケープ対応）"""
+    import html
     
-    highlighted_sentence = sentence
+    if not words_dict:
+        # HTMLエスケープして安全に表示
+        return html.escape(sentence)
+    
+    # まずHTMLエスケープ
+    safe_sentence = html.escape(sentence)
     target_words = list(words_dict.values())
     
     # 単語を長い順にソート（部分マッチを避けるため）
     target_words.sort(key=len, reverse=True)
     
     for word in target_words:
-        # 大文字小文字を無視して置換
+        # エスケープされた単語でも検索
+        escaped_word = html.escape(word)
+        
+        # 大文字小文字を無視して置換（HTMLエスケープ後の文字列で）
         import re
-        pattern = re.compile(re.escape(word), re.IGNORECASE)
-        highlighted_sentence = pattern.sub(
-            f'<span style="background-color: #ffeb3b; font-weight: bold; padding: 2px 4px; border-radius: 3px;">{word}</span>',
-            highlighted_sentence
+        pattern = re.compile(re.escape(escaped_word), re.IGNORECASE)
+        safe_sentence = pattern.sub(
+            f'<span style="background-color: #ffeb3b; font-weight: bold; padding: 2px 4px; border-radius: 3px;">{escaped_word}</span>',
+            safe_sentence
         )
     
-    return highlighted_sentence
+    return safe_sentence
 
 def highlight_words_in_japanese(japanese_sentence, words_dict, word_master):
-    """日本語訳内の対応する単語をハイライト"""
-    if not words_dict or word_master.empty:
-        return japanese_sentence
+    """日本語訳内の対応する単語をハイライト（HTMLエスケープ対応）"""
+    import html
     
-    highlighted_sentence = japanese_sentence
+    if not words_dict or word_master.empty:
+        return html.escape(japanese_sentence)
+    
+    # まずHTMLエスケープ
+    safe_sentence = html.escape(japanese_sentence)
     
     # word_masterから日本語の意味を取得してハイライト
     for word_id, english_word in words_dict.items():
@@ -443,15 +516,16 @@ def highlight_words_in_japanese(japanese_sentence, words_dict, word_master):
             word_info = word_master[word_master['word_id'] == word_id_int]
             if not word_info.empty and 'japanese_meaning' in word_info.columns:
                 japanese_meaning = word_info.iloc[0]['japanese_meaning']
-                if japanese_meaning in highlighted_sentence:
-                    highlighted_sentence = highlighted_sentence.replace(
-                        japanese_meaning,
-                        f'<span style="background-color: #c8e6c9; font-weight: bold; padding: 2px 4px; border-radius: 3px;">{japanese_meaning}</span>'
+                escaped_meaning = html.escape(japanese_meaning)
+                if escaped_meaning in safe_sentence:
+                    safe_sentence = safe_sentence.replace(
+                        escaped_meaning,
+                        f'<span style="background-color: #c8e6c9; font-weight: bold; padding: 2px 4px; border-radius: 3px;">{escaped_meaning}</span>'
                     )
         except:
             continue
     
-    return highlighted_sentence
+    return safe_sentence
     """生成されたコンテンツを英文と日本語訳に分割"""
     lines = content.strip().split('\n')
     parsed_content = []

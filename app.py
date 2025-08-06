@@ -162,6 +162,25 @@ st.markdown("""
     display: inline-block;
 }
 
+/* 安全なハイライト用CSS */
+.vocab-highlight {
+    background-color: #ffeb3b !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    padding: 2px 4px !important;
+    border-radius: 3px !important;
+    border: none !important;
+}
+
+.japanese-highlight {
+    background-color: #c8e6c9 !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    padding: 2px 4px !important;
+    border-radius: 3px !important;
+    border: none !important;
+}
+
 /* モバイル対応 */
 @media (max-width: 768px) {
     .sentence-card {
@@ -470,62 +489,111 @@ def parse_generated_content(content):
     
     return parsed_content
 
-def highlight_words_in_sentence(sentence, words_dict, word_master):
-    """文章内の学習対象単語をハイライト（HTMLエスケープ対応）"""
+def safe_html_display(text, highlight_spans=None):
+    """安全なHTML表示（XSS対策＋ハイライト機能）"""
     import html
     
-    if not words_dict:
-        # HTMLエスケープして安全に表示
-        return html.escape(sentence)
+    if not highlight_spans:
+        # ハイライト対象がない場合は、そのままエスケープして表示
+        return html.escape(text)
     
-    # まずHTMLエスケープ
-    safe_sentence = html.escape(sentence)
-    target_words = list(words_dict.values())
+    # テキストを安全に処理してハイライトを適用
+    result = ""
+    last_end = 0
     
-    # 単語を長い順にソート（部分マッチを避けるため）
-    target_words.sort(key=len, reverse=True)
+    # ハイライト位置をソート
+    spans = sorted(highlight_spans, key=lambda x: x['start'])
+    
+    for span in spans:
+        start, end = span['start'], span['end']
+        word = span['word']
+        style_class = span.get('class', 'highlight-word')
+        
+        # 前の部分（エスケープ）
+        if start > last_end:
+            result += html.escape(text[last_end:start])
+        
+        # ハイライト部分（安全なスタイル適用）
+        escaped_word = html.escape(word)
+        if style_class == 'highlight-word':
+            result += f'<mark class="vocab-highlight">{escaped_word}</mark>'
+        else:
+            result += f'<mark class="japanese-highlight">{escaped_word}</mark>'
+        
+        last_end = end
+    
+    # 残りの部分（エスケープ）
+    if last_end < len(text):
+        result += html.escape(text[last_end:])
+    
+    return result
+
+def find_word_positions(sentence, target_words):
+    """文章内の単語位置を検出"""
+    import re
+    positions = []
     
     for word in target_words:
-        # エスケープされた単語でも検索
-        escaped_word = html.escape(word)
-        
-        # 大文字小文字を無視して置換（HTMLエスケープ後の文字列で）
-        import re
-        pattern = re.compile(re.escape(escaped_word), re.IGNORECASE)
-        safe_sentence = pattern.sub(
-            f'<span style="background-color: #ffeb3b; font-weight: bold; padding: 2px 4px; border-radius: 3px;">{escaped_word}</span>',
-            safe_sentence
-        )
+        # 大文字小文字を無視して検索
+        pattern = re.compile(re.escape(word), re.IGNORECASE)
+        for match in pattern.finditer(sentence):
+            positions.append({
+                'start': match.start(),
+                'end': match.end(),
+                'word': sentence[match.start():match.end()],  # 元の文字ケースを保持
+                'class': 'highlight-word'
+            })
     
-    return safe_sentence
+    return positions
+
+def highlight_words_in_sentence(sentence, words_dict, word_master):
+    """文章内の学習対象単語をハイライト（完全修正版）"""
+    if not words_dict:
+        return safe_html_display(sentence)
+    
+    target_words = list(words_dict.values())
+    if not target_words:
+        return safe_html_display(sentence)
+    
+    # 単語位置を検出
+    word_positions = find_word_positions(sentence, target_words)
+    
+    # 重複除去（同じ位置の場合）
+    unique_positions = []
+    for pos in word_positions:
+        if not any(p['start'] == pos['start'] and p['end'] == pos['end'] for p in unique_positions):
+            unique_positions.append(pos)
+    
+    return safe_html_display(sentence, unique_positions)
 
 def highlight_words_in_japanese(japanese_sentence, words_dict, word_master):
-    """日本語訳内の対応する単語をハイライト（HTMLエスケープ対応）"""
-    import html
-    
+    """日本語訳内の対応する単語をハイライト（完全修正版）"""
     if not words_dict or word_master.empty:
-        return html.escape(japanese_sentence)
+        return safe_html_display(japanese_sentence)
     
-    # まずHTMLエスケープ
-    safe_sentence = html.escape(japanese_sentence)
+    japanese_words = []
     
-    # word_masterから日本語の意味を取得してハイライト
+    # word_masterから日本語の意味を取得
     for word_id, english_word in words_dict.items():
         try:
             word_id_int = int(word_id)
             word_info = word_master[word_master['word_id'] == word_id_int]
             if not word_info.empty and 'japanese_meaning' in word_info.columns:
                 japanese_meaning = word_info.iloc[0]['japanese_meaning']
-                escaped_meaning = html.escape(japanese_meaning)
-                if escaped_meaning in safe_sentence:
-                    safe_sentence = safe_sentence.replace(
-                        escaped_meaning,
-                        f'<span style="background-color: #c8e6c9; font-weight: bold; padding: 2px 4px; border-radius: 3px;">{escaped_meaning}</span>'
-                    )
+                if japanese_meaning and japanese_meaning.strip():
+                    japanese_words.append(japanese_meaning.strip())
         except:
             continue
     
-    return safe_sentence
+    if not japanese_words:
+        return safe_html_display(japanese_sentence)
+    
+    # 日本語単語の位置を検出
+    word_positions = find_word_positions(japanese_sentence, japanese_words)
+    for pos in word_positions:
+        pos['class'] = 'japanese-highlight'
+    
+    return safe_html_display(japanese_sentence, word_positions)
     """生成されたコンテンツを英文と日本語訳に分割"""
     lines = content.strip().split('\n')
     parsed_content = []
@@ -698,7 +766,7 @@ def word_learning_tab(df, word_master):
     st.progress(progress)
     st.markdown(f'<p class="progress-text">進捗: {st.session_state.current_sentence_idx + 1} / {len(filtered_df)} 文章</p>', unsafe_allow_html=True)
     
-    # 文章表示カード（ハイライト付き）
+    # 文章表示カード（安全なハイライト付き）
     words_dict = parse_words_dict(current_sentence.get('words_contained_dict', '{}'))
     highlighted_sentence = highlight_words_in_sentence(
         current_sentence['sentence_content_en'], 
@@ -706,13 +774,14 @@ def word_learning_tab(df, word_master):
         word_master
     )
     
+    # HTMLを安全に表示
     st.markdown(f'''
     <div class="sentence-card">
         <div class="swipe-indicator left">😕</div>
         <div class="swipe-indicator right">😊</div>
         <h3>📝 Group {current_sentence['group_id']} - Sentence {current_sentence['sentence_id']}</h3>
         <h4>英文:</h4>
-        <p style="font-size: 1.2rem; line-height: 1.6;">{highlighted_sentence}</p>
+        <div style="font-size: 1.2rem; line-height: 1.6;">{highlighted_sentence}</div>
     </div>
     ''', unsafe_allow_html=True)
     
@@ -796,7 +865,7 @@ def word_learning_tab(df, word_master):
         st.markdown(f'''
         <div class="translation-card">
             <h4>🇯🇵 日本語訳:</h4>
-            <p style="font-size: 1.1rem;">{highlighted_translation}</p>
+            <div style="font-size: 1.1rem;">{highlighted_translation}</div>
         </div>
         ''', unsafe_allow_html=True)
     

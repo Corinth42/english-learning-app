@@ -1146,40 +1146,54 @@ def word_learning_tab(df, word_master):
     st.session_state.audio_mode = 'full' if audio_mode.startswith("📄") else 'sentence'
     
     if st.session_state.mobile_mode:
-        # モバイルモード：縦並び大きなボタン
-        if st.button("🔊 通常速度で再生", key="mobile_normal", use_container_width=True):
-            play_text_to_speech(current_sentence['sentence_content_en'], rate=1.0)
+        # モバイルモード：サーバー生成音声をメイン機能に
+        st.markdown("**🔊 音声再生（iOS Chrome最適化）**")
+        
+        if st.button("🎵 音声再生（通常速度）", key="mobile_main_normal", use_container_width=True):
+            play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.0)
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("🐌 ゆっくり", key="mobile_slow", use_container_width=True):
-                play_text_to_speech(current_sentence['sentence_content_en'], rate=0.7)
+            if st.button("🐌 ゆっくり再生", key="mobile_main_slow", use_container_width=True):
+                play_server_generated_audio(current_sentence['sentence_content_en'], rate=0.8)
         with col2:
-            if st.button("🚀 早め", key="mobile_fast", use_container_width=True):
-                play_text_to_speech(current_sentence['sentence_content_en'], rate=1.3)
+            if st.button("🚀 早め再生", key="mobile_main_fast", use_container_width=True):
+                play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.2)
         
-        if st.button("⏹️ 停止", key="mobile_stop", use_container_width=True):
-            st.components.v1.html("""
-                <script>window.speechSynthesis.cancel();</script>
-            """, height=0)
-        
-        # iOS Chrome代替案
-        st.markdown("**📱 iOS Chrome用代替音声:**")
-        if st.button("🎵 サーバー生成音声", key="mobile_server", use_container_width=True):
-            play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.0)
+        # ブラウザTTSは補助機能として
+        with st.expander("🔧 ブラウザ音声（実験的）"):
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                if st.button("🔊", key="mobile_tts_normal"):
+                    play_text_to_speech(current_sentence['sentence_content_en'], rate=1.0)
+            with col2:
+                if st.button("🐌", key="mobile_tts_slow"):
+                    play_text_to_speech(current_sentence['sentence_content_en'], rate=0.7)
+            with col3:
+                if st.button("🚀", key="mobile_tts_fast"):
+                    play_text_to_speech(current_sentence['sentence_content_en'], rate=1.3)
+            with col4:
+                if st.button("⏹️", key="mobile_tts_stop"):
+                    st.components.v1.html("""
+                        <script>window.speechSynthesis.cancel();</script>
+                    """, height=0)
+            st.caption("⚠️ iOS Chromeでは動作しない場合があります")
         
     else:
-        # デスクトップモード：横並び
+        # デスクトップモード：両方の選択肢を提供
+        st.markdown("**🔊 音声再生**")
+        
+        # デスクトップではブラウザTTSをメインに
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         
         with col1:
-            if st.button("🔊 通常速度"):
+            if st.button("🔊 通常速度（TTS）"):
                 play_text_to_speech(current_sentence['sentence_content_en'], rate=1.0)
         with col2:
-            if st.button("🐌 ゆっくり"):
+            if st.button("🐌 ゆっくり（TTS）"):
                 play_text_to_speech(current_sentence['sentence_content_en'], rate=0.7)
         with col3:
-            if st.button("🚀 早め"):
+            if st.button("🚀 早め（TTS）"):
                 play_text_to_speech(current_sentence['sentence_content_en'], rate=1.3)
         with col4:
             if st.button("⏹️ 停止"):
@@ -1187,9 +1201,18 @@ def word_learning_tab(df, word_master):
                     <script>window.speechSynthesis.cancel();</script>
                 """, height=0)
         
-        # デスクトップ用代替案
-        if st.button("🎵 サーバー生成音声（高品質）", key="desktop_server"):
-            play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.0)
+        # デスクトップでも高品質オプションを提供
+        st.markdown("**🎵 高品質音声**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("🎵 高品質（通常）", key="desktop_hq_normal"):
+                play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.0)
+        with col2:
+            if st.button("🎵 高品質（ゆっくり）", key="desktop_hq_slow"):
+                play_server_generated_audio(current_sentence['sentence_content_en'], rate=0.8)
+        with col3:
+            if st.button("🎵 高品質（早め）", key="desktop_hq_fast"):
+                play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.2)
     
     # 翻訳表示/非表示
     if st.session_state.mobile_mode:
@@ -1370,60 +1393,78 @@ def shadowing_tab():
         current_audio_mode = 'full' if audio_mode_shadowing.startswith("📄") else 'sentence'
         
         if current_audio_mode == 'full':
-            # 全文一括再生モード
-            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            # 全文一括再生モード - サーバー生成音声をメイン機能に
+            st.markdown("**🎵 全文音声再生（高品質）**")
             
+            col1, col2, col3 = st.columns(3)
             with col1:
-                if st.button("🔊 全文通常速度", key="shadowing_full_normal"):
+                if st.button("🎵 全文通常速度", key="shadowing_main_full_normal"):
                     full_text = " ".join([item["english"] for item in content])
-                    play_text_to_speech(full_text, rate=1.0)
-            
+                    play_server_generated_audio(full_text, rate=1.0)
             with col2:
-                if st.button("🐌 全文ゆっくり", key="shadowing_full_slow"):
+                if st.button("🎵 全文ゆっくり", key="shadowing_main_full_slow"):
                     full_text = " ".join([item["english"] for item in content])
-                    play_text_to_speech(full_text, rate=0.7)
-            
+                    play_server_generated_audio(full_text, rate=0.8)
             with col3:
-                if st.button("🚀 全文早め", key="shadowing_full_fast"):
+                if st.button("🎵 全文早め", key="shadowing_main_full_fast"):
                     full_text = " ".join([item["english"] for item in content])
-                    play_text_to_speech(full_text, rate=1.3)
+                    play_server_generated_audio(full_text, rate=1.2)
             
-            with col4:
-                if st.button("⏹️ 停止", key="shadowing_full_stop"):
-                    st.components.v1.html("""
-                        <script>window.speechSynthesis.cancel();</script>
-                    """, height=0)
-            
-            # iOS Chrome代替案
-            if st.button("🎵 サーバー生成音声（iOS Chrome用）", key="shadowing_server_full"):
-                full_text = " ".join([item["english"] for item in content])
-                play_server_generated_audio(full_text, rate=1.0)
+            # ブラウザTTSは実験的機能として
+            with st.expander("🔧 ブラウザ音声（実験的）"):
+                col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+                with col1:
+                    if st.button("🔊 全文通常", key="shadowing_tts_full_normal"):
+                        full_text = " ".join([item["english"] for item in content])
+                        play_text_to_speech(full_text, rate=1.0)
+                with col2:
+                    if st.button("🔊 全文ゆっくり", key="shadowing_tts_full_slow"):
+                        full_text = " ".join([item["english"] for item in content])
+                        play_text_to_speech(full_text, rate=0.7)
+                with col3:
+                    if st.button("🔊 全文早め", key="shadowing_tts_full_fast"):
+                        full_text = " ".join([item["english"] for item in content])
+                        play_text_to_speech(full_text, rate=1.3)
+                with col4:
+                    if st.button("⏹️ 停止", key="shadowing_tts_full_stop"):
+                        st.components.v1.html("""
+                            <script>window.speechSynthesis.cancel();</script>
+                        """, height=0)
+                st.caption("⚠️ iOS Chromeでは動作しない場合があります")
                 
         else:
-            # 1文ずつ再生モード
-            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            # 1文ずつ再生モード - サーバー生成音声をメイン機能に
+            st.markdown("**🎵 文章音声再生（高品質）**")
             
+            col1, col2, col3 = st.columns(3)
             with col1:
-                if st.button("🔊 通常速度", key="shadowing_normal"):
-                    play_text_to_speech(current_sentence["english"], rate=1.0)
-            
+                if st.button("🎵 通常速度", key="shadowing_main_single_normal"):
+                    play_server_generated_audio(current_sentence["english"], rate=1.0)
             with col2:
-                if st.button("🐌 ゆっくり", key="shadowing_slow"):
-                    play_text_to_speech(current_sentence["english"], rate=0.7)
-            
+                if st.button("🎵 ゆっくり", key="shadowing_main_single_slow"):
+                    play_server_generated_audio(current_sentence["english"], rate=0.8)
             with col3:
-                if st.button("🚀 早め", key="shadowing_fast"):
-                    play_text_to_speech(current_sentence["english"], rate=1.3)
+                if st.button("🎵 早め", key="shadowing_main_single_fast"):
+                    play_server_generated_audio(current_sentence["english"], rate=1.2)
             
-            with col4:
-                if st.button("⏹️ 停止", key="shadowing_stop"):
-                    st.components.v1.html("""
-                        <script>window.speechSynthesis.cancel();</script>
-                    """, height=0)
-            
-            # iOS Chrome代替案
-            if st.button("🎵 サーバー生成音声（iOS Chrome用）", key="shadowing_server_single"):
-                play_server_generated_audio(current_sentence["english"], rate=1.0)
+            # ブラウザTTSは実験的機能として
+            with st.expander("🔧 ブラウザ音声（実験的）"):
+                col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+                with col1:
+                    if st.button("🔊 通常", key="shadowing_tts_single_normal"):
+                        play_text_to_speech(current_sentence["english"], rate=1.0)
+                with col2:
+                    if st.button("🔊 ゆっくり", key="shadowing_tts_single_slow"):
+                        play_text_to_speech(current_sentence["english"], rate=0.7)
+                with col3:
+                    if st.button("🔊 早め", key="shadowing_tts_single_fast"):
+                        play_text_to_speech(current_sentence["english"], rate=1.3)
+                with col4:
+                    if st.button("⏹️ 停止", key="shadowing_tts_single_stop"):
+                        st.components.v1.html("""
+                            <script>window.speechSynthesis.cancel();</script>
+                        """, height=0)
+                st.caption("⚠️ iOS Chromeでは動作しない場合があります")
         
         # 翻訳表示/非表示
         col1, col2, col3 = st.columns([1, 2, 1])

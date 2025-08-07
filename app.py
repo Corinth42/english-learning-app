@@ -285,122 +285,223 @@ def show_available_voices():
     st.components.v1.html(html_code, height=300)
 
 def play_text_to_speech(text, rate=1.0):
-    """ブラウザ標準TTSで音声再生（モバイル最適化）"""
-    # HTMLエスケープ処理を強化
+    """モバイル最適化音声再生（iOS Chrome完全対応）"""
     import html
     escaped_text = html.escape(text).replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
     
-    # モバイル対応＋高品質音声設定のJavaScript
+    # iOS Chrome完全対応のJavaScript
     html_code = f"""
     <script>
-        function playTTSOptimized() {{
-            // 既存の音声を停止
-            window.speechSynthesis.cancel();
+        function playMobileTTS() {{
+            // デバイス・ブラウザ検出
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isChrome = /Chrome/.test(navigator.userAgent);
+            const isSafari = /Safari/.test(navigator.userAgent) && !isChrome;
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            console.log(`Device: iOS=${{isIOS}}, Chrome=${{isChrome}}, Safari=${{isSafari}}, Android=${{isAndroid}}`);
+            
+            // 既存音声を強制停止
+            try {{
+                window.speechSynthesis.cancel();
+                // iOS Chromeでは少し待つ
+                if (isIOS && isChrome) {{
+                    setTimeout(() => window.speechSynthesis.cancel(), 50);
+                }}
+            }} catch(e) {{
+                console.warn('Cancel failed:', e);
+            }}
             
             const utterance = new SpeechSynthesisUtterance("{escaped_text}");
             
-            // British English音声設定（最適化）
-            utterance.lang = 'en-GB';
-            utterance.rate = {rate};
-            utterance.pitch = 0.9;  // 少し低めで自然に
-            utterance.volume = 1.0;
-            
-            // iOS Safari対応：ユーザージェスチャー内で実行
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            // デバイス別最適化設定
+            if (isIOS) {{
+                utterance.lang = 'en-US';  // iOS Chromeではen-USが安定
+                utterance.rate = {rate * 0.9};  // iOS向け速度調整
+                utterance.pitch = 0.95;
+                utterance.volume = 1.0;
+            }} else if (isAndroid) {{
+                utterance.lang = 'en-GB';
+                utterance.rate = {rate};
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+            }} else {{
+                // PC (macOS/Windows)
+                utterance.lang = 'en-GB';
+                utterance.rate = {rate};
+                utterance.pitch = 0.9;
+                utterance.volume = 1.0;
+            }}
             
             // 音声選択の最適化
-            function selectOptimalVoice() {{
+            function selectBestVoice() {{
                 const voices = window.speechSynthesis.getVoices();
-                console.log('Available voices:', voices.map(v => `${{v.name}} (${{v.lang}})`));
+                console.log(`Found ${{voices.length}} voices`);
                 
-                // British English音声の優先順位
-                const preferredVoices = [
-                    'Daniel',           // macOS British male
-                    'Kate',            // macOS British female  
-                    'Oliver',          // macOS British male
-                    'Serena',          // macOS British female
-                    'Google UK English Female',  // Chrome
-                    'Google UK English Male',    // Chrome
-                    'Microsoft Hazel - English (Great Britain)', // Windows
-                    'Microsoft George - English (Great Britain)' // Windows
-                ];
+                if (voices.length === 0) return null;
                 
-                // 最適な音声を検索
-                for (const preferred of preferredVoices) {{
-                    const voice = voices.find(v => 
-                        v.name.includes(preferred) || 
-                        (v.lang.includes('en-GB') && v.name.includes(preferred.split(' ')[0]))
-                    );
-                    if (voice) {{
-                        console.log('Selected voice:', voice.name);
-                        return voice;
+                let selectedVoice = null;
+                
+                if (isIOS) {{
+                    // iOS向け音声優先順位
+                    const iosVoices = [
+                        'Samantha',     // US English (iOS標準)
+                        'Alex',         // US English 
+                        'Daniel',       // UK English (利用可能な場合)
+                        'Kate',         // UK English (利用可能な場合)
+                    ];
+                    
+                    for (const voiceName of iosVoices) {{
+                        selectedVoice = voices.find(v => v.name.includes(voiceName));
+                        if (selectedVoice) break;
+                    }}
+                    
+                    // フォールバック: 英語音声
+                    if (!selectedVoice) {{
+                        selectedVoice = voices.find(v => 
+                            v.lang.startsWith('en') && v.localService
+                        ) || voices.find(v => v.lang.startsWith('en'));
+                    }}
+                }} else if (isAndroid) {{
+                    // Android Chrome向け
+                    selectedVoice = voices.find(v => 
+                        v.name.includes('UK') || v.name.includes('British')
+                    ) || voices.find(v => v.lang.includes('en-GB'))
+                      || voices.find(v => v.lang.startsWith('en'));
+                }} else {{
+                    // PC向け（従来の処理）
+                    const preferredVoices = ['Daniel', 'Kate', 'Oliver', 'Serena'];
+                    for (const preferred of preferredVoices) {{
+                        selectedVoice = voices.find(v => v.name.includes(preferred));
+                        if (selectedVoice) break;
+                    }}
+                    if (!selectedVoice) {{
+                        selectedVoice = voices.find(v => v.lang.includes('en-GB'))
+                                    || voices.find(v => v.lang.startsWith('en'));
                     }}
                 }}
                 
-                // フォールバック：en-GB音声
-                const gbVoice = voices.find(v => v.lang.includes('en-GB'));
-                if (gbVoice) {{
-                    console.log('Fallback to GB voice:', gbVoice.name);
-                    return gbVoice;
-                }}
-                
-                // 最終フォールバック：英語音声
-                const enVoice = voices.find(v => v.lang.startsWith('en'));
-                console.log('Final fallback:', enVoice ? enVoice.name : 'default');
-                return enVoice;
+                console.log(`Selected voice: ${{selectedVoice ? selectedVoice.name + ' (' + selectedVoice.lang + ')' : 'default'}}`);
+                return selectedVoice;
             }}
             
-            const selectedVoice = selectOptimalVoice();
-            if (selectedVoice) {{
-                utterance.voice = selectedVoice;
+            const bestVoice = selectBestVoice();
+            if (bestVoice) {{
+                utterance.voice = bestVoice;
             }}
             
-            // エラーハンドリング強化
-            utterance.onerror = function(event) {{
-                console.error('Speech synthesis error:', event.error);
-                if (event.error === 'network') {{
-                    alert('🌐 ネットワークエラー：インターネット接続を確認してください');
-                }} else if (event.error === 'not-allowed') {{
-                    alert('🔊 音声再生が許可されていません。設定を確認してください');
-                }} else {{
-                    console.warn('Speech error, but continuing...');
+            // イベントハンドラー
+            utterance.onstart = function() {{
+                console.log('✅ Speech started successfully');
+                // iOSで成功した場合、フィードバック表示
+                if (isIOS) {{
+                    const feedback = document.createElement('div');
+                    feedback.innerHTML = '🔊 再生中...';
+                    feedback.style.cssText = `
+                        position: fixed; top: 20px; right: 20px; z-index: 9999;
+                        background: #4CAF50; color: white; padding: 10px 15px;
+                        border-radius: 20px; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                    `;
+                    document.body.appendChild(feedback);
+                    setTimeout(() => document.body.removeChild(feedback), 2000);
                 }}
             }};
             
             utterance.onend = function() {{
-                console.log('Speech synthesis completed');
+                console.log('✅ Speech completed');
             }};
             
-            utterance.onstart = function() {{
-                console.log('Speech synthesis started');
-            }};
-            
-            // iOS/Safari対応：短い遅延を追加
-            if (isIOS || isSafari) {{
-                setTimeout(() => {{
-                    window.speechSynthesis.speak(utterance);
-                }}, 100);
-            }} else {{
-                window.speechSynthesis.speak(utterance);
-            }}
-        }}
-        
-        // 音声リストの読み込み待機
-        function initializeTTS() {{
-            const voices = window.speechSynthesis.getVoices();
-            if (voices.length === 0) {{
-                // 音声リストの読み込み完了を待機
-                window.speechSynthesis.onvoiceschanged = function() {{
-                    playTTSOptimized();
+            utterance.onerror = function(event) {{
+                console.error('❌ Speech error:', event.error);
+                
+                // エラー別対処
+                const errorMessages = {{
+                    'not-allowed': '🔊 音声許可が必要です\\n\\nブラウザ設定 → サイトの設定 → マイクとカメラ',
+                    'network': '🌐 ネットワークエラー\\n\\nWi-Fi接続を確認してください',
+                    'synthesis-failed': '🎵 音声合成エラー\\n\\n別の速度で試してください',
+                    'synthesis-unavailable': '❌ 音声機能が利用できません\\n\\nデバイス設定を確認してください'
                 }};
+                
+                const message = errorMessages[event.error] || `音声エラー: ${{event.error}}`;
+                
+                // iOS用エラー表示
+                const errorDiv = document.createElement('div');
+                errorDiv.innerHTML = message.replace(/\\n/g, '<br>');
+                errorDiv.style.cssText = `
+                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    z-index: 10000; background: #f44336; color: white; padding: 20px;
+                    border-radius: 10px; text-align: center; max-width: 300px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                `;
+                document.body.appendChild(errorDiv);
+                
+                // 5秒後に消去
+                setTimeout(() => {{
+                    if (document.body.contains(errorDiv)) {{
+                        document.body.removeChild(errorDiv);
+                    }}
+                }}, 5000);
+            }};
+            
+            // iOS Chrome特別処理
+            if (isIOS && isChrome) {{
+                // ユーザージェスチャーが必要
+                console.log('iOS Chrome: Attempting speech synthesis...');
+                
+                // 複数回試行
+                let attempts = 0;
+                const maxAttempts = 3;
+                
+                function attemptSpeak() {{
+                    attempts++;
+                    try {{
+                        window.speechSynthesis.speak(utterance);
+                        console.log(`Attempt ${{attempts}}: Speech initiated`);
+                    }} catch(e) {{
+                        console.error(`Attempt ${{attempts}} failed:`, e);
+                        if (attempts < maxAttempts) {{
+                            setTimeout(attemptSpeak, 200 * attempts);
+                        }}
+                    }}
+                }}
+                
+                attemptSpeak();
+                
             }} else {{
-                playTTSOptimized();
+                // その他のブラウザ
+                try {{
+                    window.speechSynthesis.speak(utterance);
+                }} catch(e) {{
+                    console.error('Speech synthesis failed:', e);
+                }}
             }}
         }}
         
-        // iOS Safari対応：ユーザージェスチャーのコンテキストで実行
-        initializeTTS();
+        // 音声リスト読み込み待機
+        function initMobileTTS() {{
+            const voices = window.speechSynthesis.getVoices();
+            
+            if (voices.length === 0) {{
+                console.log('Waiting for voices...');
+                window.speechSynthesis.onvoiceschanged = function() {{
+                    console.log('Voices loaded, starting TTS');
+                    playMobileTTS();
+                }};
+                
+                // タイムアウト処理 (iOS Chrome対応)
+                setTimeout(() => {{
+                    if (window.speechSynthesis.getVoices().length === 0) {{
+                        console.warn('Voice loading timeout, attempting anyway');
+                        playMobileTTS();
+                    }}
+                }}, 1000);
+            }} else {{
+                playMobileTTS();
+            }}
+        }}
+        
+        // 初期化実行
+        initMobileTTS();
     </script>
     """
     
@@ -666,6 +767,35 @@ def main():
     # 利用可能な音声を表示
     if st.sidebar.button("🎤 利用可能な音声を確認"):
         show_available_voices()
+    
+    # iOS Chrome専用テスト
+    if st.sidebar.button("📱 iOS音声テスト"):
+        st.components.v1.html("""
+        <script>
+            const testText = "Hello, this is a test for iOS Chrome speech synthesis.";
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isChrome = /Chrome/.test(navigator.userAgent);
+            
+            if (isIOS && isChrome) {
+                const utterance = new SpeechSynthesisUtterance(testText);
+                utterance.lang = 'en-US';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                utterance.onstart = () => {
+                    alert('✅ iOS Chrome音声テスト成功！');
+                };
+                
+                utterance.onerror = (e) => {
+                    alert(`❌ エラー: ${e.error}\\n\\n設定を確認してください`);
+                };
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert(`デバイス情報:\\niOS: ${/iPad|iPhone|iPod/.test(navigator.userAgent)}\\nChrome: ${/Chrome/.test(navigator.userAgent)}`);
+            }
+        </script>
+        """, height=0)
     
     # 音声設定のヘルプ
     with st.sidebar.expander("📖 音声機能について"):

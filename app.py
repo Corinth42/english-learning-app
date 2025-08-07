@@ -240,7 +240,61 @@ def parse_words_dict(words_str):
     except:
         return {}
 
-def show_available_voices():
+def generate_audio_file(text, rate=1.0, lang='en'):
+    """サーバーサイドで音声ファイル生成（iOS Chrome用代替案）"""
+    try:
+        from gtts import gTTS
+        import io
+        import base64
+        
+        # British English設定
+        tts_lang = 'en-uk' if lang == 'en-GB' else 'en'
+        
+        # gTTSで音声生成
+        tts = gTTS(text=text, lang=tts_lang, slow=(rate < 0.8))
+        
+        # バイトストリームに保存
+        audio_buffer = io.BytesIO()
+        tts.write_to_fp(audio_buffer)
+        audio_buffer.seek(0)
+        
+        # Base64エンコード
+        audio_base64 = base64.b64encode(audio_buffer.getvalue()).decode()
+        
+        return audio_base64
+        
+    except ImportError:
+        st.error("GTTSライブラリがインストールされていません")
+        return None
+    except Exception as e:
+        st.error(f"音声生成エラー: {str(e)}")
+        return None
+
+def play_server_generated_audio(text, rate=1.0):
+    """サーバー生成音声の再生"""
+    
+    # 音声ファイルを生成
+    with st.spinner("🎵 音声を生成中..."):
+        audio_base64 = generate_audio_file(text, rate, 'en-uk')
+    
+    if not audio_base64:
+        st.error("音声生成に失敗しました")
+        return
+    
+    # HTML5 Audio要素で再生
+    audio_html = f"""
+    <div style="margin: 10px 0;">
+        <audio controls autoplay style="width: 100%;">
+            <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+        <p style="font-size: 12px; color: #666; margin-top: 5px;">
+            🎵 サーバー生成音声 (British English)
+        </p>
+    </div>
+    """
+    
+    st.components.v1.html(audio_html, height=80)
     """利用可能な音声を表示"""
     html_code = """
     <script>
@@ -768,6 +822,145 @@ def main():
     if st.sidebar.button("🎤 利用可能な音声を確認"):
         show_available_voices()
     
+    # 詳細デバッグ用ボタン
+    if st.sidebar.button("🔍 詳細音声診断"):
+        st.components.v1.html("""
+        <div id="diagnosis-output" style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 10px 0; font-family: monospace; font-size: 12px;"></div>
+        <script>
+            function log(message) {
+                const output = document.getElementById('diagnosis-output');
+                output.innerHTML += message + '<br>';
+            }
+            
+            function runDiagnosis() {
+                log('🔍 === 音声機能詳細診断開始 ===');
+                
+                // 1. 基本情報
+                log(`📱 UserAgent: ${navigator.userAgent}`);
+                log(`🌐 URL: ${window.location.href}`);
+                log(`⏰ 時刻: ${new Date().toLocaleString()}`);
+                
+                // 2. デバイス判定
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const isChrome = /Chrome/.test(navigator.userAgent);
+                const isSafari = /Safari/.test(navigator.userAgent) && !isChrome;
+                
+                log(`🍎 iOS: ${isIOS}`);
+                log(`🔷 Chrome: ${isChrome}`);
+                log(`🟦 Safari: ${isSafari}`);
+                
+                // 3. Speech Synthesis API確認
+                log(`🎤 speechSynthesis available: ${!!window.speechSynthesis}`);
+                
+                if (!window.speechSynthesis) {
+                    log('❌ ERROR: speechSynthesis API not available');
+                    return;
+                }
+                
+                log(`🔊 speechSynthesis.speaking: ${window.speechSynthesis.speaking}`);
+                log(`⏸️ speechSynthesis.paused: ${window.speechSynthesis.paused}`);
+                log(`⏳ speechSynthesis.pending: ${window.speechSynthesis.pending}`);
+                
+                // 4. 音声リスト取得
+                const voices = window.speechSynthesis.getVoices();
+                log(`🎵 Total voices: ${voices.length}`);
+                
+                if (voices.length === 0) {
+                    log('⚠️ No voices found, waiting for voiceschanged...');
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        const newVoices = window.speechSynthesis.getVoices();
+                        log(`🔄 Voices loaded: ${newVoices.length}`);
+                        listVoices(newVoices);
+                        testSpeech();
+                    };
+                } else {
+                    listVoices(voices);
+                    testSpeech();
+                }
+                
+                function listVoices(voiceList) {
+                    log('📋 === Available Voices ===');
+                    voiceList.forEach((voice, index) => {
+                        log(`${index + 1}. ${voice.name} (${voice.lang}) - Local: ${voice.localService} - Default: ${voice.default}`);
+                    });
+                }
+                
+                function testSpeech() {
+                    log('🧪 === Speech Test Starting ===');
+                    
+                    const testText = 'Testing iOS Chrome speech';
+                    const utterance = new SpeechSynthesisUtterance(testText);
+                    
+                    // iOS Chrome設定
+                    utterance.lang = 'en-US';
+                    utterance.rate = 1.0;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+                    
+                    // イベントログ
+                    utterance.onstart = (e) => {
+                        log('✅ onstart: Speech started successfully');
+                    };
+                    
+                    utterance.onend = (e) => {
+                        log('✅ onend: Speech completed');
+                    };
+                    
+                    utterance.onerror = (e) => {
+                        log(`❌ onerror: ${e.error} - ${e.type}`);
+                    };
+                    
+                    utterance.onpause = (e) => {
+                        log('⏸️ onpause: Speech paused');
+                    };
+                    
+                    utterance.onresume = (e) => {
+                        log('▶️ onresume: Speech resumed');
+                    };
+                    
+                    utterance.onboundary = (e) => {
+                        log(`🎯 onboundary: ${e.name} at ${e.charIndex}`);
+                    };
+                    
+                    // 音声選択
+                    const voices = window.speechSynthesis.getVoices();
+                    const preferredVoice = voices.find(v => 
+                        v.lang.startsWith('en') && v.localService
+                    ) || voices.find(v => v.lang.startsWith('en'));
+                    
+                    if (preferredVoice) {
+                        utterance.voice = preferredVoice;
+                        log(`🎤 Selected voice: ${preferredVoice.name} (${preferredVoice.lang})`);
+                    } else {
+                        log('⚠️ No suitable voice found, using default');
+                    }
+                    
+                    // 実行前チェック
+                    log('🚀 Attempting speech synthesis...');
+                    
+                    try {
+                        window.speechSynthesis.cancel(); // 既存をクリア
+                        setTimeout(() => {
+                            window.speechSynthesis.speak(utterance);
+                            log('📢 speak() called successfully');
+                        }, 100);
+                    } catch (error) {
+                        log(`❌ Exception in speak(): ${error.message}`);
+                    }
+                    
+                    // タイムアウト監視
+                    setTimeout(() => {
+                        if (!window.speechSynthesis.speaking) {
+                            log('⏰ Timeout: Speech did not start within 3 seconds');
+                        }
+                    }, 3000);
+                }
+            }
+            
+            runDiagnosis();
+        </script>
+        """, height=400)
+    
     # iOS Chrome専用テスト
     if st.sidebar.button("📱 iOS音声テスト"):
         st.components.v1.html("""
@@ -1171,6 +1364,12 @@ def shadowing_tab():
                     st.components.v1.html("""
                         <script>window.speechSynthesis.cancel();</script>
                     """, height=0)
+            
+            # iOS Chrome代替案
+            if st.button("🎵 サーバー生成音声（iOS Chrome用）", key="shadowing_server_full"):
+                full_text = " ".join([item["english"] for item in content])
+                play_server_generated_audio(full_text, rate=1.0)
+                
         else:
             # 1文ずつ再生モード
             col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -1192,6 +1391,10 @@ def shadowing_tab():
                     st.components.v1.html("""
                         <script>window.speechSynthesis.cancel();</script>
                     """, height=0)
+            
+            # iOS Chrome代替案
+            if st.button("🎵 サーバー生成音声（iOS Chrome用）", key="shadowing_server_single"):
+                play_server_generated_audio(current_sentence["english"], rate=1.0)
         
         # 翻訳表示/非表示
         col1, col2, col3 = st.columns([1, 2, 1])

@@ -97,179 +97,180 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# カスタムCSS（モバイル対応）
-st.markdown("""
-<style>
-.main-header {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #1f77b4;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.sentence-card {
-    background-color: #f8f9fa !important;
-    padding: 1.5rem;
-    border-radius: 10px;
-    border-left: 4px solid #1f77b4;
-    margin: 1rem 0;
-    color: #212529 !important;
-}
-
-.sentence-card p, .sentence-card h3, .sentence-card h4 {
-    color: #212529 !important;
-}
-
-.translation-card {
-    background-color: #e8f4fd !important;
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 0.5rem 0;
-    border: 1px solid #bee5eb;
-    color: #495057 !important;
-}
-
-.translation-card p, .translation-card h4 {
-    color: #495057 !important;
-}
-
-/* ダークモード対応 */
-[data-theme="dark"] .sentence-card {
-    background-color: #343a40;
-    color: #f8f9fa;
-    border-left: 4px solid #4dabf7;
-}
-
-[data-theme="dark"] .translation-card {
-    background-color: #495057;
-    color: #f8f9fa;
-    border: 1px solid #6c757d;
-}
-
-.progress-text {
-    font-size: 1.1rem;
-    font-weight: 500;
-}
-
-.word-chip {
-    background-color: #007bff;
-    color: white;
-    padding: 0.2rem 0.6rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    margin: 0.2rem;
-    display: inline-block;
-}
-
-/* 安全なハイライト用CSS */
-.vocab-highlight {
-    background-color: #ffeb3b !important;
-    color: #000 !important;
-    font-weight: bold !important;
-    padding: 2px 4px !important;
-    border-radius: 3px !important;
-    border: none !important;
-}
-
-.japanese-highlight {
-    background-color: #c8e6c9 !important;
-    color: #000 !important;
-    font-weight: bold !important;
-    padding: 2px 4px !important;
-    border-radius: 3px !important;
-    border: none !important;
-}
-
-/* モバイル対応 */
-@media (max-width: 768px) {
-    .sentence-card {
-        padding: 1rem;
-        margin: 0.5rem 0;
-    }
+def load_custom_css():
+    """カスタムCSS（モバイル対応）を読み込み"""
+    st.markdown("""
+    <style>
     .main-header {
-        font-size: 1.5rem;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1f77b4;
+        text-align: center;
+        margin-bottom: 2rem;
     }
-    
-    /* モバイルナビゲーションボタンのスタイル */
-    .mobile-nav-buttons {
+
+    .sentence-card {
+        background-color: #f8f9fa !important;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #1f77b4;
         margin: 1rem 0;
-        padding: 0.5rem 0;
+        color: #212529 !important;
     }
-    
-    /* モバイルでのボタンサイズ調整 */
-    .stButton > button {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
+
+    .sentence-card p, .sentence-card h3, .sentence-card h4 {
+        color: #212529 !important;
     }
-    
-    /* モバイルでの音声ボタン配置 */
-    .mobile-audio-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    /* モバイルでの翻訳表示 */
+
     .translation-card {
+        background-color: #e8f4fd !important;
+        padding: 1rem;
+        border-radius: 8px;
         margin: 0.5rem 0;
-        padding: 0.8rem;
+        border: 1px solid #bee5eb;
+        color: #495057 !important;
     }
-    
-    /* モバイルでの理解度ボタン */
-    .understanding-buttons {
-        display: flex;
-        justify-content: space-between;
-        gap: 0.5rem;
-        margin: 1rem 0;
+
+    .translation-card p, .translation-card h4 {
+        color: #495057 !important;
     }
-    
-    .understanding-buttons .stButton > button {
-        flex: 1;
+
+    /* ダークモード対応 */
+    [data-theme="dark"] .sentence-card {
+        background-color: #343a40;
+        color: #f8f9fa;
+        border-left: 4px solid #4dabf7;
+    }
+
+    [data-theme="dark"] .translation-card {
+        background-color: #495057;
+        color: #f8f9fa;
+        border: 1px solid #6c757d;
+    }
+
+    .progress-text {
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    .word-chip {
+        background-color: #007bff;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 15px;
         font-size: 0.8rem;
-        padding: 0.4rem 0.2rem;
+        margin: 0.2rem;
+        display: inline-block;
     }
-}
 
-/* プログレススライダーのスタイリング */
-.progress-slider-container {
-    margin: 1rem 0;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    border: 1px solid #dee2e6;
-}
+    /* 安全なハイライト用CSS */
+    .vocab-highlight {
+        background-color: #ffeb3b !important;
+        color: #000 !important;
+        font-weight: bold !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        border: none !important;
+    }
 
-/* スライダーのカスタムスタイル */
-.stSlider > div > div > div > div {
-    background-color: #1f77b4 !important;
-}
+    .japanese-highlight {
+        background-color: #c8e6c9 !important;
+        color: #000 !important;
+        font-weight: bold !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        border: none !important;
+    }
 
-.stSlider > div > div > div > div > div {
-    background-color: #1f77b4 !important;
-}
+    /* モバイル対応 */
+    @media (max-width: 768px) {
+        .sentence-card {
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        .main-header {
+            font-size: 1.5rem;
+        }
+        
+        /* モバイルナビゲーションボタンのスタイル */
+        .mobile-nav-buttons {
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+        }
+        
+        /* モバイルでのボタンサイズ調整 */
+        .stButton > button {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        
+        /* モバイルでの音声ボタン配置 */
+        .mobile-audio-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        /* モバイルでの翻訳表示 */
+        .translation-card {
+            margin: 0.5rem 0;
+            padding: 0.8rem;
+        }
+        
+        /* モバイルでの理解度ボタン */
+        .understanding-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .understanding-buttons .stButton > button {
+            flex: 1;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.2rem;
+        }
+    }
 
-/* スライダーのラベルスタイル */
-.stSlider label {
-    font-weight: 600;
-    color: #1f77b4;
-    font-size: 1.1rem;
-}
-
-/* モバイルでのスライダー調整 */
-@media (max-width: 768px) {
+    /* プログレススライダーのスタイリング */
     .progress-slider-container {
-        margin: 0.5rem 0;
-        padding: 0.8rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
     }
-    
+
+    /* スライダーのカスタムスタイル */
+    .stSlider > div > div > div > div {
+        background-color: #1f77b4 !important;
+    }
+
+    .stSlider > div > div > div > div > div {
+        background-color: #1f77b4 !important;
+    }
+
+    /* スライダーのラベルスタイル */
     .stSlider label {
-        font-size: 1rem;
+        font-weight: 600;
+        color: #1f77b4;
+        font-size: 1.1rem;
     }
-}
-</style>
-""", unsafe_allow_html=True)
+
+    /* モバイルでのスライダー調整 */
+    @media (max-width: 768px) {
+        .progress-slider-container {
+            margin: 0.5rem 0;
+            padding: 0.8rem;
+        }
+        
+        .stSlider label {
+            font-size: 1rem;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # データローダー関数
 @st.cache_data
@@ -884,6 +885,9 @@ def highlight_words_in_japanese(japanese_sentence, words_dict, word_master):
         st.session_state.studied_today = 0
 
 def main():
+    # カスタムCSS読み込み
+    load_custom_css()
+    
     # セッション状態初期化
     initialize_session_state()
     

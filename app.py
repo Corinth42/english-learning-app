@@ -251,29 +251,19 @@ def load_custom_css():
         background-color: #1f77b4 !important;
     }
 
-    /* スライダーのラベルスタイル */
-    .stSlider label {
-        font-weight: 700 !important;
-        color: #1f77b4 !important;
-        font-size: 1.2rem !important;
-        text-shadow: 1px 1px 2px rgba(255,255,255,0.8) !important;
-        background-color: rgba(255,255,255,0.9) !important;
-        padding: 4px 8px !important;
-        border-radius: 4px !important;
-        border: 2px solid #1f77b4 !important;
-    }
-
-    /* スライダーの値表示スタイル */
+    /* スライダーの値表示スタイル（全環境対応） */
     .stSlider > div > div > div > div > div > div {
         background-color: #ffffff !important;
-        color: #1f77b4 !important;
-        font-weight: 700 !important;
+        color: #000000 !important;
+        font-weight: 800 !important;
         font-size: 1.1rem !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
-        border: 2px solid #1f77b4 !important;
-        border-radius: 6px !important;
-        padding: 4px 8px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        text-shadow: 1px 1px 3px rgba(255,255,255,0.8) !important;
+        border: 3px solid #1f77b4 !important;
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.4) !important;
+        min-width: 80px !important;
+        text-align: center !important;
     }
 
     /* スライダーのトラック（背景）スタイル */
@@ -283,6 +273,15 @@ def load_custom_css():
         border-radius: 10px !important;
     }
 
+    /* ダークモード対応 */
+    [data-theme="dark"] .stSlider > div > div > div > div > div > div {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 3px solid #4dabf7 !important;
+        text-shadow: 1px 1px 3px rgba(255,255,255,0.8) !important;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.6) !important;
+    }
+
     /* モバイルでのスライダー調整 */
     @media (max-width: 768px) {
         .progress-slider-container {
@@ -290,28 +289,18 @@ def load_custom_css():
             padding: 0.8rem;
         }
         
-        .stSlider label {
-            font-size: 1.1rem !important;
-            font-weight: 800 !important;
-            color: #1f77b4 !important;
-            background-color: #ffffff !important;
-            border: 3px solid #1f77b4 !important;
-            padding: 6px 12px !important;
-            border-radius: 6px !important;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.3) !important;
-        }
-        
         .stSlider > div > div > div > div > div > div {
             background-color: #ffffff !important;
-            color: #1f77b4 !important;
-            font-weight: 800 !important;
-            font-size: 1.2rem !important;
-            border: 3px solid #1f77b4 !important;
-            border-radius: 8px !important;
-            padding: 6px 12px !important;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.3) !important;
+            color: #000000 !important;
+            font-weight: 900 !important;
+            font-size: 1.3rem !important;
+            border: 4px solid #1f77b4 !important;
+            border-radius: 10px !important;
+            padding: 8px 16px !important;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.9) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important;
+            min-width: 100px !important;
+            text-align: center !important;
         }
         
         .stSlider > div > div > div {
@@ -325,6 +314,17 @@ def load_custom_css():
             background-color: #1f77b4 !important;
             border-radius: 8px !important;
             height: 8px !important;
+        }
+    }
+
+    /* モバイル版ダークモード対応 */
+    @media (max-width: 768px) {
+        [data-theme="dark"] .stSlider > div > div > div > div > div > div {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border: 4px solid #4dabf7 !important;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.9) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.7) !important;
         }
     }
     </style>
@@ -1261,7 +1261,7 @@ def word_learning_tab(df, word_master):
         value=st.session_state.current_sentence_idx,
         format="文章 %d",
         help="スライダーをドラッグして任意の文章に移動できます",
-        label_visibility="visible"
+        label_visibility="collapsed"
     )
     
     # スライダーの値が変更された場合の処理
@@ -1565,7 +1565,7 @@ def shadowing_tab():
             format="文 %d",
             help="スライダーをドラッグして任意の文章に移動できます",
             key="shadowing_slider",
-            label_visibility="visible"
+            label_visibility="collapsed"
         )
         
         # スライダーの値が変更された場合の処理

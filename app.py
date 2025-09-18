@@ -1168,28 +1168,27 @@ def word_learning_tab(df, word_master):
     </div>
     ''', unsafe_allow_html=True)
     
+    # ナビゲーションボタン（文章表示の直下）
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 1, 1])
+    
+    with col1:
+        if st.button("⬅️ 前の文章", key="nav_prev", use_container_width=True) and st.session_state.current_sentence_idx > 0:
+            st.session_state.current_sentence_idx -= 1
+            st.session_state.show_translation = False
+            st.rerun()
+    
+    with col3:
+        if st.button("次の文章 ➡️", key="nav_next", use_container_width=True):
+            st.session_state.current_sentence_idx += 1
+            st.session_state.show_translation = False
+            st.rerun()
+    
     # モバイル検出とモード切り替え
     is_mobile = st.checkbox("📱 モバイルモード", value=st.session_state.mobile_mode)
     if is_mobile != st.session_state.mobile_mode:
         st.session_state.mobile_mode = is_mobile
         st.rerun()
-    
-    # モバイルモードでのナビゲーションボタン（文章表示の直下）
-    if st.session_state.mobile_mode:
-        st.markdown("---")
-        col1, col2, col3 = st.columns([1, 1, 1])
-        
-        with col1:
-            if st.button("⬅️ 前の文章", key="mobile_prev", use_container_width=True) and st.session_state.current_sentence_idx > 0:
-                st.session_state.current_sentence_idx -= 1
-                st.session_state.show_translation = False
-                st.rerun()
-        
-        with col3:
-            if st.button("次の文章 ➡️", key="mobile_next", use_container_width=True):
-                st.session_state.current_sentence_idx += 1
-                st.session_state.show_translation = False
-                st.rerun()
     
     # 音声再生コントロール
     st.markdown("### 🔊 音声再生")
@@ -1351,22 +1350,6 @@ def word_learning_tab(df, word_master):
         st.success(f"理解度を記録しました: {level_names[understanding_level]}")
         st.rerun()
     
-    # デスクトップモードでのナビゲーションボタン
-    if not st.session_state.mobile_mode:
-        st.markdown("---")
-        col1, col2, col3 = st.columns([1, 1, 1])
-        
-        with col1:
-            if st.button("⬅️ 前の文章", key="desktop_prev") and st.session_state.current_sentence_idx > 0:
-                st.session_state.current_sentence_idx -= 1
-                st.session_state.show_translation = False
-                st.rerun()
-        
-        with col3:
-            if st.button("次の文章 ➡️", key="desktop_next"):
-                st.session_state.current_sentence_idx += 1
-                st.session_state.show_translation = False
-                st.rerun()
 
 def shadowing_tab():
     """シャドーイングタブ"""

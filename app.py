@@ -253,9 +253,34 @@ def load_custom_css():
 
     /* スライダーのラベルスタイル */
     .stSlider label {
-        font-weight: 600;
-        color: #1f77b4;
-        font-size: 1.1rem;
+        font-weight: 700 !important;
+        color: #1f77b4 !important;
+        font-size: 1.2rem !important;
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8) !important;
+        background-color: rgba(255,255,255,0.9) !important;
+        padding: 4px 8px !important;
+        border-radius: 4px !important;
+        border: 2px solid #1f77b4 !important;
+    }
+
+    /* スライダーの値表示スタイル */
+    .stSlider > div > div > div > div > div > div {
+        background-color: #ffffff !important;
+        color: #1f77b4 !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        border: 2px solid #1f77b4 !important;
+        border-radius: 6px !important;
+        padding: 4px 8px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    }
+
+    /* スライダーのトラック（背景）スタイル */
+    .stSlider > div > div > div {
+        background-color: #e0e0e0 !important;
+        border: 2px solid #1f77b4 !important;
+        border-radius: 10px !important;
     }
 
     /* モバイルでのスライダー調整 */
@@ -266,7 +291,40 @@ def load_custom_css():
         }
         
         .stSlider label {
-            font-size: 1rem;
+            font-size: 1.1rem !important;
+            font-weight: 800 !important;
+            color: #1f77b4 !important;
+            background-color: #ffffff !important;
+            border: 3px solid #1f77b4 !important;
+            padding: 6px 12px !important;
+            border-radius: 6px !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3) !important;
+        }
+        
+        .stSlider > div > div > div > div > div > div {
+            background-color: #ffffff !important;
+            color: #1f77b4 !important;
+            font-weight: 800 !important;
+            font-size: 1.2rem !important;
+            border: 3px solid #1f77b4 !important;
+            border-radius: 8px !important;
+            padding: 6px 12px !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3) !important;
+        }
+        
+        .stSlider > div > div > div {
+            background-color: #f0f0f0 !important;
+            border: 3px solid #1f77b4 !important;
+            border-radius: 12px !important;
+            height: 12px !important;
+        }
+        
+        .stSlider > div > div > div > div {
+            background-color: #1f77b4 !important;
+            border-radius: 8px !important;
+            height: 8px !important;
         }
     }
     </style>
@@ -1190,13 +1248,20 @@ def word_learning_tab(df, word_master):
     
     # ドラッグ可能なプログレススライダー
     st.markdown("### 📊 進捗とナビゲーション")
+    
+    # 現在の位置を明確に表示
+    current_pos = st.session_state.current_sentence_idx + 1
+    total_sentences = len(filtered_df)
+    st.markdown(f"**現在: {current_pos} / {total_sentences} 文章**")
+    
     new_sentence_idx = st.slider(
-        "文章位置",
+        "文章を選択",
         min_value=0,
         max_value=len(filtered_df) - 1,
         value=st.session_state.current_sentence_idx,
         format="文章 %d",
-        help="スライダーをドラッグして任意の文章に移動できます"
+        help="スライダーをドラッグして任意の文章に移動できます",
+        label_visibility="visible"
     )
     
     # スライダーの値が変更された場合の処理
@@ -1486,14 +1551,21 @@ def shadowing_tab():
         
         # ドラッグ可能なプログレススライダー
         st.markdown("### 📊 進捗とナビゲーション")
+        
+        # 現在の位置を明確に表示
+        current_pos = current_idx + 1
+        total_sentences = len(content)
+        st.markdown(f"**現在: {current_pos} / {total_sentences} 文**")
+        
         new_shadowing_idx = st.slider(
-            "文章位置",
+            "文章を選択",
             min_value=0,
             max_value=len(content) - 1,
             value=current_idx,
             format="文 %d",
             help="スライダーをドラッグして任意の文章に移動できます",
-            key="shadowing_slider"
+            key="shadowing_slider",
+            label_visibility="visible"
         )
         
         # スライダーの値が変更された場合の処理

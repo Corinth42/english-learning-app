@@ -1680,4 +1680,4 @@ def create_sample_data():
     st.success("✅ サンプルデータを作成しました！ページを再読み込みしてください。")
 
 if __name__ == "__main__":
-    main(e)
+    main()

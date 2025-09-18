@@ -231,6 +231,43 @@ st.markdown("""
         padding: 0.4rem 0.2rem;
     }
 }
+
+/* プログレススライダーのスタイリング */
+.progress-slider-container {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+}
+
+/* スライダーのカスタムスタイル */
+.stSlider > div > div > div > div {
+    background-color: #1f77b4 !important;
+}
+
+.stSlider > div > div > div > div > div {
+    background-color: #1f77b4 !important;
+}
+
+/* スライダーのラベルスタイル */
+.stSlider label {
+    font-weight: 600;
+    color: #1f77b4;
+    font-size: 1.1rem;
+}
+
+/* モバイルでのスライダー調整 */
+@media (max-width: 768px) {
+    .progress-slider-container {
+        margin: 0.5rem 0;
+        padding: 0.8rem;
+    }
+    
+    .stSlider label {
+        font-size: 1rem;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1144,8 +1181,27 @@ def word_learning_tab(df, word_master):
     
     current_sentence = filtered_df.iloc[current_idx]
     
-    # 進捗表示
+    # 進捗表示とドラッグ可能なスライダー
     progress = (st.session_state.current_sentence_idx + 1) / len(filtered_df)
+    
+    # ドラッグ可能なプログレススライダー
+    st.markdown("### 📊 進捗とナビゲーション")
+    new_sentence_idx = st.slider(
+        "文章位置",
+        min_value=0,
+        max_value=len(filtered_df) - 1,
+        value=st.session_state.current_sentence_idx,
+        format="文章 %d",
+        help="スライダーをドラッグして任意の文章に移動できます"
+    )
+    
+    # スライダーの値が変更された場合の処理
+    if new_sentence_idx != st.session_state.current_sentence_idx:
+        st.session_state.current_sentence_idx = new_sentence_idx
+        st.session_state.show_translation = False
+        st.rerun()
+    
+    # 進捗表示
     st.progress(progress)
     st.markdown(f'<p class="progress-text">進捗: {st.session_state.current_sentence_idx + 1} / {len(filtered_df)} 文章</p>', unsafe_allow_html=True)
     
@@ -1421,8 +1477,28 @@ def shadowing_tab():
         content = st.session_state.generated_content
         current_idx = st.session_state.current_shadowing_idx
         
-        # 進捗表示
+        # 進捗表示とドラッグ可能なスライダー
         progress = (current_idx + 1) / len(content)
+        
+        # ドラッグ可能なプログレススライダー
+        st.markdown("### 📊 進捗とナビゲーション")
+        new_shadowing_idx = st.slider(
+            "文章位置",
+            min_value=0,
+            max_value=len(content) - 1,
+            value=current_idx,
+            format="文 %d",
+            help="スライダーをドラッグして任意の文章に移動できます",
+            key="shadowing_slider"
+        )
+        
+        # スライダーの値が変更された場合の処理
+        if new_shadowing_idx != current_idx:
+            st.session_state.current_shadowing_idx = new_shadowing_idx
+            st.session_state.show_shadowing_translation = False
+            st.rerun()
+        
+        # 進捗表示
         st.progress(progress)
         st.markdown(f'<p class="progress-text">進捗: {current_idx + 1} / {len(content)} 文</p>', unsafe_allow_html=True)
         

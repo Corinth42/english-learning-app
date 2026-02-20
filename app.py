@@ -1077,7 +1077,7 @@ def generate_content_with_gemini(genre, topic):
     """Gemini APIでコンテンツ生成"""
     try:
         # 新しいモデル名に変更
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         prompt = GENRE_PROMPTS[genre]["prompt"].format(topic=topic)
         
         response = model.generate_content(prompt)

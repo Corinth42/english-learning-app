@@ -94,21 +94,135 @@ st.set_page_config(
     page_title="英語学習アプリ",
     page_icon="📚",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"  # サイドバーは初期状態で折りたたみ
 )
 
 def load_custom_css():
-    """カスタムCSS（モバイル対応）を読み込み"""
+    """カスタムCSS（iPhone SE向けモバイル最適化）を読み込み"""
     st.markdown("""
     <style>
+    /* ========== 基本スタイル ========== */
     .main-header {
-        font-size: 2rem;
+        font-size: 1.5rem;
         font-weight: bold;
         color: #1f77b4;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 0.5rem;
     }
 
+    /* シンプルな進捗表示 */
+    .progress-simple {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+    }
+
+    /* 安全なハイライト用CSS */
+    .vocab-highlight {
+        background-color: #ffeb3b !important;
+        color: #000 !important;
+        font-weight: bold !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        border: none !important;
+    }
+
+    .japanese-highlight {
+        background-color: #c8e6c9 !important;
+        color: #000 !important;
+        font-weight: bold !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        border: none !important;
+    }
+
+    .word-chip {
+        background-color: #007bff;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin: 0.2rem;
+        display: inline-block;
+    }
+
+    /* ========== 大きなナビゲーションボタン ========== */
+    .big-nav-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        padding: 1rem;
+        min-height: 60px;
+        border-radius: 12px;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.1s, background-color 0.2s;
+    }
+
+    .big-nav-button:active {
+        transform: scale(0.95);
+    }
+
+    /* ========== 大きな理解度ボタン ========== */
+    .understanding-row {
+        display: flex;
+        justify-content: space-around;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+    }
+
+    .understanding-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 0.5rem;
+        border-radius: 12px;
+        cursor: pointer;
+        min-height: 70px;
+        font-size: 1.8rem;
+        transition: transform 0.1s;
+    }
+
+    .understanding-btn:active {
+        transform: scale(0.95);
+    }
+
+    .understanding-btn .label {
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+    }
+
+    /* ========== 音声ボタン ========== */
+    .audio-button-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5rem;
+        padding: 1rem;
+        cursor: pointer;
+    }
+
+    /* ========== Streamlitボタン上書き（iPhone SE向け） ========== */
+    .stButton > button {
+        min-height: 50px !important;
+        font-size: 1.1rem !important;
+        border-radius: 10px !important;
+        padding: 0.8rem 1rem !important;
+    }
+
+    /* 理解度ボタン専用 */
+    [data-testid="stHorizontalBlock"] .stButton > button {
+        min-height: 65px !important;
+        font-size: 1.3rem !important;
+    }
+
+    /* ========== 旧スタイル（後方互換性） ========== */
     .sentence-card {
         background-color: #f8f9fa !important;
         padding: 1.5rem;
@@ -148,187 +262,183 @@ def load_custom_css():
         border: 1px solid #6c757d;
     }
 
+    [data-theme="dark"] .progress-simple {
+        color: #f8f9fa;
+    }
+
     .progress-text {
         font-size: 1.1rem;
         font-weight: 500;
     }
-
-    .word-chip {
-        background-color: #007bff;
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        margin: 0.2rem;
-        display: inline-block;
-    }
-
-    /* 安全なハイライト用CSS */
-    .vocab-highlight {
-        background-color: #ffeb3b !important;
-        color: #000 !important;
-        font-weight: bold !important;
-        padding: 2px 4px !important;
-        border-radius: 3px !important;
-        border: none !important;
-    }
-
-    .japanese-highlight {
-        background-color: #c8e6c9 !important;
-        color: #000 !important;
-        font-weight: bold !important;
-        padding: 2px 4px !important;
-        border-radius: 3px !important;
-        border: none !important;
-    }
-
-    /* モバイル対応 */
-    @media (max-width: 768px) {
-        .sentence-card {
-            padding: 1rem;
-            margin: 0.5rem 0;
-        }
-        .main-header {
-            font-size: 1.5rem;
-        }
-        
-        /* モバイルナビゲーションボタンのスタイル */
-        .mobile-nav-buttons {
-            margin: 1rem 0;
-            padding: 0.5rem 0;
-        }
-        
-        /* モバイルでのボタンサイズ調整 */
-        .stButton > button {
-            font-size: 0.9rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-        }
-        
-        /* モバイルでの音声ボタン配置 */
-        .mobile-audio-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        /* モバイルでの翻訳表示 */
-        .translation-card {
-            margin: 0.5rem 0;
-            padding: 0.8rem;
-        }
-        
-        /* モバイルでの理解度ボタン */
-        .understanding-buttons {
-            display: flex;
-            justify-content: space-between;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-        
-        .understanding-buttons .stButton > button {
-            flex: 1;
-            font-size: 0.8rem;
-            padding: 0.4rem 0.2rem;
-        }
-    }
-
-    /* プログレススライダーのスタイリング */
-    .progress-slider-container {
-        margin: 1rem 0;
-        padding: 1rem;
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        border: 1px solid #dee2e6;
-    }
-
-    /* スライダーのカスタムスタイル */
-    .stSlider > div > div > div > div {
-        background-color: #1f77b4 !important;
-    }
-
-    .stSlider > div > div > div > div > div {
-        background-color: #1f77b4 !important;
-    }
-
-    /* スライダーの値表示スタイル（全環境対応） */
-    .stSlider > div > div > div > div > div > div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        font-weight: 800 !important;
-        font-size: 1.1rem !important;
-        text-shadow: 1px 1px 3px rgba(255,255,255,0.8) !important;
-        border: 3px solid #1f77b4 !important;
-        border-radius: 8px !important;
-        padding: 6px 12px !important;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.4) !important;
-        min-width: 80px !important;
-        text-align: center !important;
-    }
-
-    /* スライダーのトラック（背景）スタイル */
-    .stSlider > div > div > div {
-        background-color: #e0e0e0 !important;
-        border: 2px solid #1f77b4 !important;
-        border-radius: 10px !important;
-    }
-
-    /* ダークモード対応 */
-    [data-theme="dark"] .stSlider > div > div > div > div > div > div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 3px solid #4dabf7 !important;
-        text-shadow: 1px 1px 3px rgba(255,255,255,0.8) !important;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.6) !important;
-    }
-
-    /* モバイルでのスライダー調整 */
-    @media (max-width: 768px) {
-        .progress-slider-container {
-            margin: 0.5rem 0;
-            padding: 0.8rem;
-        }
-        
-        .stSlider > div > div > div > div > div > div {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            font-weight: 900 !important;
-            font-size: 1.3rem !important;
-            border: 4px solid #1f77b4 !important;
-            border-radius: 10px !important;
-            padding: 8px 16px !important;
-            text-shadow: 2px 2px 4px rgba(255,255,255,0.9) !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important;
-            min-width: 100px !important;
-            text-align: center !important;
-        }
-        
-        .stSlider > div > div > div {
-            background-color: #f0f0f0 !important;
-            border: 3px solid #1f77b4 !important;
-            border-radius: 12px !important;
-            height: 12px !important;
-        }
-        
-        .stSlider > div > div > div > div {
-            background-color: #1f77b4 !important;
-            border-radius: 8px !important;
-            height: 8px !important;
-        }
-    }
-
-    /* モバイル版ダークモード対応 */
-    @media (max-width: 768px) {
-        [data-theme="dark"] .stSlider > div > div > div > div > div > div {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 4px solid #4dabf7 !important;
-            text-shadow: 2px 2px 4px rgba(255,255,255,0.9) !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.7) !important;
-        }
-    }
     </style>
     """, unsafe_allow_html=True)
+
+def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True):
+    """フリップカード用HTML/CSS/JSを生成（タップで英文↔和訳を切り替え）"""
+    import html as html_module
+
+    # テキストをエスケープ
+    escaped_en = html_module.escape(english_text)
+    escaped_jp = html_module.escape(japanese_text)
+
+    tap_hint = "👆 タップで翻訳" if show_tap_hint else ""
+
+    flip_card_html = f"""
+    <style>
+    .flip-container-{card_id} {{
+        perspective: 1000px;
+        width: 100%;
+        margin: 0.5rem 0;
+    }}
+
+    .flip-card-{card_id} {{
+        position: relative;
+        width: 100%;
+        min-height: 200px;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        cursor: pointer;
+    }}
+
+    .flip-card-{card_id}.flipped {{
+        transform: rotateY(180deg);
+    }}
+
+    .flip-card-front-{card_id}, .flip-card-back-{card_id} {{
+        position: absolute;
+        width: 100%;
+        min-height: 200px;
+        backface-visibility: hidden;
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }}
+
+    .flip-card-front-{card_id} {{
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }}
+
+    .flip-card-back-{card_id} {{
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        transform: rotateY(180deg);
+    }}
+
+    .flip-card-text {{
+        font-size: 1.3rem;
+        line-height: 1.8;
+        font-weight: 500;
+        padding: 0.5rem;
+    }}
+
+    .flip-card-hint {{
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 1rem;
+    }}
+
+    .flip-card-label {{
+        font-size: 0.8rem;
+        opacity: 0.7;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }}
+
+    /* iPhone SE向け調整 */
+    @media (max-width: 400px) {{
+        .flip-card-text {{
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }}
+        .flip-card-front-{card_id}, .flip-card-back-{card_id} {{
+            min-height: 180px;
+            padding: 1rem;
+        }}
+    }}
+    </style>
+
+    <div class="flip-container-{card_id}">
+        <div class="flip-card-{card_id}" id="flipCard{card_id}" onclick="toggleFlip{card_id}()">
+            <div class="flip-card-front-{card_id}">
+                <div class="flip-card-label">English</div>
+                <div class="flip-card-text">{escaped_en}</div>
+                <div class="flip-card-hint">{tap_hint}</div>
+            </div>
+            <div class="flip-card-back-{card_id}">
+                <div class="flip-card-label">日本語</div>
+                <div class="flip-card-text">{escaped_jp}</div>
+                <div class="flip-card-hint">👆 タップで英文に戻る</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function toggleFlip{card_id}() {{
+        const card = document.getElementById('flipCard{card_id}');
+        card.classList.toggle('flipped');
+    }}
+
+    // スワイプジェスチャー検出
+    (function() {{
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const container = document.querySelector('.flip-container-{card_id}');
+
+        container.addEventListener('touchstart', function(e) {{
+            touchStartX = e.changedTouches[0].screenX;
+        }}, false);
+
+        container.addEventListener('touchend', function(e) {{
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }}, false);
+
+        function handleSwipe() {{
+            const swipeThreshold = 50;
+            const diff = touchEndX - touchStartX;
+
+            if (Math.abs(diff) > swipeThreshold) {{
+                // スワイプでStreamlit側に通知（親フレームにメッセージ送信）
+                if (diff > 0) {{
+                    // 右スワイプ = 前の文章
+                    window.parent.postMessage({{type: 'swipe', direction: 'prev'}}, '*');
+                }} else {{
+                    // 左スワイプ = 次の文章
+                    window.parent.postMessage({{type: 'swipe', direction: 'next'}}, '*');
+                }}
+            }}
+        }}
+    }})();
+    </script>
+    """
+
+    return flip_card_html
+
+
+def create_swipe_handler():
+    """スワイプジェスチャーのハンドラーJS（Streamlit側で受信）"""
+    swipe_js = """
+    <script>
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'swipe') {
+            // Streamlitにスワイプイベントを通知
+            const direction = e.data.direction;
+            // セッション状態を更新するためのワークアラウンド
+            // 実際にはボタンクリックをシミュレート
+            console.log('Swipe detected:', direction);
+        }
+    });
+    </script>
+    """
+    return swipe_js
+
 
 # データローダー関数
 @st.cache_data
@@ -905,270 +1015,54 @@ def highlight_words_in_japanese(japanese_sentence, words_dict, word_master):
         pos['class'] = 'japanese-highlight'
     
     return safe_html_display(japanese_sentence, word_positions)
-    """生成されたコンテンツを英文と日本語訳に分割"""
-    lines = content.strip().split('\n')
-    parsed_content = []
-    
-    current_en = ""
-    current_jp = ""
-    
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-            
-        # 英文の判定（アルファベットで始まり、英語っぽい）
-        if line[0].isupper() and any(c.isalpha() for c in line):
-            if current_en and current_jp:
-                parsed_content.append({"english": current_en, "japanese": current_jp})
-            current_en = line
-            current_jp = ""
-        else:
-            # 日本語訳として扱う
-            current_jp = line
-    
-    # 最後のペアを追加
-    if current_en and current_jp:
-        parsed_content.append({"english": current_en, "japanese": current_jp})
-    
-    return parsed_content
-    """セッション状態の初期化"""
-    if 'current_sentence_idx' not in st.session_state:
-        st.session_state.current_sentence_idx = 0
-    if 'learning_progress' not in st.session_state:
-        st.session_state.learning_progress = {}
-    if 'show_translation' not in st.session_state:
-        st.session_state.show_translation = False
-    if 'studied_today' not in st.session_state:
-        st.session_state.studied_today = 0
+
 
 def main():
     # カスタムCSS読み込み
     load_custom_css()
-    
+
     # セッション状態初期化
     initialize_session_state()
-    
+
     # Gemini API初期化を最初に実行
     initialize_gemini()
-    
-    # ヘッダー
-    st.markdown('<h1 class="main-header">📚 英語学習アプリ</h1>', unsafe_allow_html=True)
-    
-    # サイドバー - API設定状況
-    st.sidebar.markdown("## 🔑 API設定状況")
-    env_api_key = os.getenv('GOOGLE_API_KEY', '')
-    session_api_key = st.session_state.get('gemini_api_key', '')
-    
-    if env_api_key:
-        st.sidebar.success(f"✅ 環境変数: {env_api_key[:8]}...")
-    else:
-        st.sidebar.warning("⚠️ 環境変数なし")
-    
-    if session_api_key:
-        st.sidebar.success(f"✅ セッション: {session_api_key[:8]}...")
-    else:
-        st.sidebar.warning("⚠️ セッションなし")
-    
-    if st.sidebar.button("🔄 API再読み込み"):
-        initialize_gemini()
-        st.rerun()
-    
-    # サイドバー - 音声設定
-    st.sidebar.markdown("## 🔊 音声設定")
-    
-    # 利用可能な音声を表示
-    if st.sidebar.button("🎤 利用可能な音声を確認"):
-        show_available_voices()
-    
-    # 詳細デバッグ用ボタン
-    if st.sidebar.button("🔍 詳細音声診断"):
-        st.components.v1.html("""
-        <div id="diagnosis-output" style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 10px 0; font-family: monospace; font-size: 12px;"></div>
-        <script>
-            function log(message) {
-                const output = document.getElementById('diagnosis-output');
-                output.innerHTML += message + '<br>';
-            }
-            
-            function runDiagnosis() {
-                log('🔍 === 音声機能詳細診断開始 ===');
-                
-                // 1. 基本情報
-                log(`📱 UserAgent: ${navigator.userAgent}`);
-                log(`🌐 URL: ${window.location.href}`);
-                log(`⏰ 時刻: ${new Date().toLocaleString()}`);
-                
-                // 2. デバイス判定
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                const isChrome = /Chrome/.test(navigator.userAgent);
-                const isSafari = /Safari/.test(navigator.userAgent) && !isChrome;
-                
-                log(`🍎 iOS: ${isIOS}`);
-                log(`🔷 Chrome: ${isChrome}`);
-                log(`🟦 Safari: ${isSafari}`);
-                
-                // 3. Speech Synthesis API確認
-                log(`🎤 speechSynthesis available: ${!!window.speechSynthesis}`);
-                
-                if (!window.speechSynthesis) {
-                    log('❌ ERROR: speechSynthesis API not available');
-                    return;
-                }
-                
-                log(`🔊 speechSynthesis.speaking: ${window.speechSynthesis.speaking}`);
-                log(`⏸️ speechSynthesis.paused: ${window.speechSynthesis.paused}`);
-                log(`⏳ speechSynthesis.pending: ${window.speechSynthesis.pending}`);
-                
-                // 4. 音声リスト取得
-                const voices = window.speechSynthesis.getVoices();
-                log(`🎵 Total voices: ${voices.length}`);
-                
-                if (voices.length === 0) {
-                    log('⚠️ No voices found, waiting for voiceschanged...');
-                    window.speechSynthesis.onvoiceschanged = () => {
-                        const newVoices = window.speechSynthesis.getVoices();
-                        log(`🔄 Voices loaded: ${newVoices.length}`);
-                        listVoices(newVoices);
-                        testSpeech();
-                    };
-                } else {
-                    listVoices(voices);
-                    testSpeech();
-                }
-                
-                function listVoices(voiceList) {
-                    log('📋 === Available Voices ===');
-                    voiceList.forEach((voice, index) => {
-                        log(`${index + 1}. ${voice.name} (${voice.lang}) - Local: ${voice.localService} - Default: ${voice.default}`);
-                    });
-                }
-                
-                function testSpeech() {
-                    log('🧪 === Speech Test Starting ===');
-                    
-                    const testText = 'Testing iOS Chrome speech';
-                    const utterance = new SpeechSynthesisUtterance(testText);
-                    
-                    // iOS Chrome設定
-                    utterance.lang = 'en-US';
-                    utterance.rate = 1.0;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1.0;
-                    
-                    // イベントログ
-                    utterance.onstart = (e) => {
-                        log('✅ onstart: Speech started successfully');
-                    };
-                    
-                    utterance.onend = (e) => {
-                        log('✅ onend: Speech completed');
-                    };
-                    
-                    utterance.onerror = (e) => {
-                        log(`❌ onerror: ${e.error} - ${e.type}`);
-                    };
-                    
-                    utterance.onpause = (e) => {
-                        log('⏸️ onpause: Speech paused');
-                    };
-                    
-                    utterance.onresume = (e) => {
-                        log('▶️ onresume: Speech resumed');
-                    };
-                    
-                    utterance.onboundary = (e) => {
-                        log(`🎯 onboundary: ${e.name} at ${e.charIndex}`);
-                    };
-                    
-                    // 音声選択
-                    const voices = window.speechSynthesis.getVoices();
-                    const preferredVoice = voices.find(v => 
-                        v.lang.startsWith('en') && v.localService
-                    ) || voices.find(v => v.lang.startsWith('en'));
-                    
-                    if (preferredVoice) {
-                        utterance.voice = preferredVoice;
-                        log(`🎤 Selected voice: ${preferredVoice.name} (${preferredVoice.lang})`);
-                    } else {
-                        log('⚠️ No suitable voice found, using default');
-                    }
-                    
-                    // 実行前チェック
-                    log('🚀 Attempting speech synthesis...');
-                    
-                    try {
-                        window.speechSynthesis.cancel(); // 既存をクリア
-                        setTimeout(() => {
-                            window.speechSynthesis.speak(utterance);
-                            log('📢 speak() called successfully');
-                        }, 100);
-                    } catch (error) {
-                        log(`❌ Exception in speak(): ${error.message}`);
-                    }
-                    
-                    // タイムアウト監視
-                    setTimeout(() => {
-                        if (!window.speechSynthesis.speaking) {
-                            log('⏰ Timeout: Speech did not start within 3 seconds');
-                        }
-                    }, 3000);
-                }
-            }
-            
-            runDiagnosis();
-        </script>
-        """, height=400)
-    
-    # iOS Chrome専用テスト
-    if st.sidebar.button("📱 iOS音声テスト"):
-        st.components.v1.html("""
-        <script>
-            const testText = "Hello, this is a test for iOS Chrome speech synthesis.";
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isChrome = /Chrome/.test(navigator.userAgent);
-            
-            if (isIOS && isChrome) {
-                const utterance = new SpeechSynthesisUtterance(testText);
-                utterance.lang = 'en-US';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                
-                utterance.onstart = () => {
-                    alert('✅ iOS Chrome音声テスト成功！');
-                };
-                
-                utterance.onerror = (e) => {
-                    alert(`❌ エラー: ${e.error}\\n\\n設定を確認してください`);
-                };
-                
-                window.speechSynthesis.speak(utterance);
-            } else {
-                alert(`デバイス情報:\\niOS: ${/iPad|iPhone|iPod/.test(navigator.userAgent)}\\nChrome: ${/Chrome/.test(navigator.userAgent)}`);
-            }
-        </script>
-        """, height=0)
-    
-    # 音声設定のヘルプ
-    with st.sidebar.expander("📖 音声機能について"):
-        st.markdown("""
-        **現在の音声機能:**
-        - ブラウザ標準のText-to-Speech
-        - British English (en-GB) 優先
-        - 3段階の速度調整
-        
-        **デバイス別対応:**
-        - 🍎 **Mac**: 高品質なDaniel (British)
-        - 🪟 **Windows**: Microsoft系音声
-        - 📱 **iOS**: 内蔵British音声
-        
-        **次回アップデート予定:**
-        - Google Cloud TTS (高品質)
-        - 単語別再生機能
-        """)
-    
-    # サイドバー - データ読み込み状況
-    st.sidebar.markdown("## 📊 データ読み込み状況")
+
+    # サイドバーに詳細設定を移動（折りたたみ状態）
+    with st.sidebar:
+        st.markdown("## ⚙️ 詳細設定")
+
+        # API設定状況
+        with st.expander("🔑 API設定", expanded=False):
+            env_api_key = os.getenv('GOOGLE_API_KEY', '')
+            session_api_key = st.session_state.get('gemini_api_key', '')
+
+            if env_api_key:
+                st.success(f"✅ 環境変数: {env_api_key[:8]}...")
+            else:
+                st.warning("⚠️ 環境変数なし")
+
+            if session_api_key:
+                st.success(f"✅ セッション: {session_api_key[:8]}...")
+            else:
+                st.warning("⚠️ セッションなし")
+
+            if st.button("🔄 API再読み込み"):
+                initialize_gemini()
+                st.rerun()
+
+        # 音声設定
+        with st.expander("🔊 音声設定", expanded=False):
+            if st.button("🎤 利用可能な音声を確認"):
+                show_available_voices()
+
+            st.markdown("""
+            **音声機能:**
+            - 高品質サーバー生成音声
+            - 3段階の速度調整
+            """)
+
+        # データ読み込み状況
+        st.markdown("## 📊 データ状況")
     
     # データ読み込み
     df = load_all_csv_data()
@@ -1176,22 +1070,21 @@ def main():
     
     if df.empty:
         st.error("📁 CSVファイルが見つかりません。'data'フォルダにgroup*.csvファイルを配置してください。")
-        
+
         # サンプルデータ作成ボタン
         if st.button("🔧 サンプルデータを作成"):
             create_sample_data()
             st.rerun()
-        
+
         return
-    
-    # データ概要表示
-    st.sidebar.markdown(f"**📈 データ統計**")
-    st.sidebar.write(f"• 総文章数: {len(df)}")
-    st.sidebar.write(f"• グループ数: {df['group_id'].nunique()}")
-    st.sidebar.write(f"• 今日の学習: {st.session_state.studied_today}文章")
-    
-    # メインナビゲーション
-    tab1, tab2, tab3 = st.tabs(["📚 単語学習", "🎯 シャドーイング", "📊 学習記録"])
+
+    # サイドバーにデータ概要（コンパクト表示）
+    with st.sidebar:
+        st.markdown(f"**📈 統計:** {len(df)}文 / {df['group_id'].nunique()}グループ")
+        st.markdown(f"**📚 今日:** {st.session_state.studied_today}文章学習")
+
+    # メインナビゲーション（タブを大きく）
+    tab1, tab2, tab3 = st.tabs(["📚 学習", "🎯 シャドーイング", "📊 記録"])
     
     with tab1:
         word_learning_tab(df, word_master)
@@ -1203,276 +1096,144 @@ def main():
         progress_tab(df)
 
 def word_learning_tab(df, word_master):
-    """単語学習タブ"""
-    st.markdown("## 📖 文章ベース単語学習")
-    
-    # 学習オプション
-    col1, col2, col3 = st.columns([2, 1, 1])
-    
-    with col1:
-        learning_mode = st.selectbox(
-            "学習モード",
-            ["順番通り", "ランダム", "特定グループ"],
-            help="学習する順序を選択"
-        )
-    
-    with col2:
-        if learning_mode == "特定グループ":
-            selected_group = st.selectbox(
-                "グループ選択",
-                options=sorted(df['group_id'].unique())
+    """単語学習タブ - iPhone SE向けフリップカードUI"""
+
+    # 設定メニュー（歯車アイコンからアクセス）
+    with st.expander("⚙️ 設定", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            learning_mode = st.selectbox(
+                "学習モード",
+                ["順番通り", "ランダム", "特定グループ"],
+                help="学習する順序を選択"
             )
-            filtered_df = df[df['group_id'] == selected_group].reset_index(drop=True)
-        else:
-            filtered_df = df.copy()
-    
-    with col3:
-        if st.button("🔄 リセット"):
+        with col2:
+            if learning_mode == "特定グループ":
+                selected_group = st.selectbox(
+                    "グループ選択",
+                    options=sorted(df['group_id'].unique())
+                )
+                filtered_df = df[df['group_id'] == selected_group].reset_index(drop=True)
+            else:
+                filtered_df = df.copy()
+
+        # ジャンプ機能
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            jump_to = st.number_input(
+                "文章番号へジャンプ",
+                min_value=1,
+                max_value=len(filtered_df) if learning_mode != "特定グループ" else len(filtered_df),
+                value=st.session_state.current_sentence_idx + 1,
+                step=1
+            )
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("移動", key="jump_btn"):
+                st.session_state.current_sentence_idx = jump_to - 1
+                st.rerun()
+
+        if st.button("🔄 リセット", use_container_width=True):
             st.session_state.current_sentence_idx = 0
             st.session_state.show_translation = False
+            if 'shuffled_indices' in st.session_state:
+                del st.session_state.shuffled_indices
             st.rerun()
-    
-    # 学習対象データフレーム
+
+    # データ準備
+    if learning_mode == "特定グループ":
+        pass  # already filtered above
+    else:
+        filtered_df = df.copy()
+
     if learning_mode == "ランダム":
-        if 'shuffled_indices' not in st.session_state:
+        if 'shuffled_indices' not in st.session_state or len(st.session_state.shuffled_indices) != len(filtered_df):
             st.session_state.shuffled_indices = list(range(len(filtered_df)))
             random.shuffle(st.session_state.shuffled_indices)
         current_idx = st.session_state.shuffled_indices[st.session_state.current_sentence_idx % len(st.session_state.shuffled_indices)]
     else:
         current_idx = st.session_state.current_sentence_idx % len(filtered_df)
-    
+
     current_sentence = filtered_df.iloc[current_idx]
-    
-    # 進捗表示とドラッグ可能なスライダー
-    progress = (st.session_state.current_sentence_idx + 1) / len(filtered_df)
-    
-    # ドラッグ可能なプログレススライダー
-    st.markdown("### 📊 進捗とナビゲーション")
-    
-    # 現在の位置を明確に表示
+
+    # ========== シンプルな進捗表示 ==========
     current_pos = st.session_state.current_sentence_idx + 1
     total_sentences = len(filtered_df)
-    st.markdown(f"**現在: {current_pos} / {total_sentences} 文章**")
-    
-    new_sentence_idx = st.slider(
-        "文章を選択",
-        min_value=0,
-        max_value=len(filtered_df) - 1,
-        value=st.session_state.current_sentence_idx,
-        format="文章 %d",
-        help="スライダーをドラッグして任意の文章に移動できます",
-        label_visibility="collapsed"
-    )
-    
-    # スライダーの値が変更された場合の処理
-    if new_sentence_idx != st.session_state.current_sentence_idx:
-        st.session_state.current_sentence_idx = new_sentence_idx
-        st.session_state.show_translation = False
-        st.rerun()
-    
-    # 進捗表示
-    st.progress(progress)
-    st.markdown(f'<p class="progress-text">進捗: {st.session_state.current_sentence_idx + 1} / {len(filtered_df)} 文章</p>', unsafe_allow_html=True)
-    
-    # 文章表示カード（安全なハイライト付き）
-    words_dict = parse_words_dict(current_sentence.get('words_contained_dict', '{}'))
-    highlighted_sentence = highlight_words_in_sentence(
-        current_sentence['sentence_content_en'], 
-        words_dict, 
-        word_master
-    )
-    
-    # HTMLを安全に表示
-    st.markdown(f'''
-    <div class="sentence-card">
-        <div class="swipe-indicator left">😕</div>
-        <div class="swipe-indicator right">😊</div>
-        <h3>📝 Group {current_sentence['group_id']} - Sentence {current_sentence['sentence_id']}</h3>
-        <h4>英文:</h4>
-        <div style="font-size: 1.2rem; line-height: 1.6;">{highlighted_sentence}</div>
-    </div>
-    ''', unsafe_allow_html=True)
-    
-    # ナビゲーションボタン（文章表示の直下）
-    st.markdown("---")
-    col1, col2, col3 = st.columns([1, 1, 1])
-    
+    st.markdown(f'<div class="progress-simple">{current_pos} / {total_sentences}</div>', unsafe_allow_html=True)
+
+    # ========== フリップカード ==========
+    english_text = current_sentence['sentence_content_en']
+    japanese_text = current_sentence['translated_sentence']
+    card_id = f"card_{current_idx}"
+
+    flip_card_html = create_flip_card(english_text, japanese_text, card_id)
+    st.components.v1.html(flip_card_html, height=280)
+
+    # ========== ナビゲーション + 音声ボタン ==========
+    col1, col2, col3 = st.columns([1.5, 1, 1.5])
+
     with col1:
-        if st.button("⬅️ 前の文章", key="nav_prev", use_container_width=True) and st.session_state.current_sentence_idx > 0:
+        if st.button("⬅️", key="nav_prev_main", use_container_width=True,
+                     disabled=(st.session_state.current_sentence_idx == 0)):
             st.session_state.current_sentence_idx -= 1
-            st.session_state.show_translation = False
             st.rerun()
-    
+
+    with col2:
+        # 音声ボタン（速度選択付き）
+        if 'audio_speed' not in st.session_state:
+            st.session_state.audio_speed = 1.0
+
+        if st.button("🔊", key="play_audio_main", use_container_width=True):
+            play_server_generated_audio(english_text, rate=st.session_state.audio_speed)
+
     with col3:
-        if st.button("次の文章 ➡️", key="nav_next", use_container_width=True):
+        if st.button("➡️", key="nav_next_main", use_container_width=True):
             st.session_state.current_sentence_idx += 1
-            st.session_state.show_translation = False
             st.rerun()
-    
-    # モバイル検出とモード切り替え
-    is_mobile = st.checkbox("📱 モバイルモード", value=st.session_state.mobile_mode)
-    if is_mobile != st.session_state.mobile_mode:
-        st.session_state.mobile_mode = is_mobile
-        st.rerun()
-    
-    # 音声再生コントロール
-    st.markdown("### 🔊 音声再生")
-    
-    # 音声モード選択
-    audio_mode = st.radio(
-        "再生モード",
-        ["📄 全文一括再生", "📝 1文ずつ再生"],
-        index=0 if st.session_state.audio_mode == 'full' else 1,
-        horizontal=True
-    )
-    st.session_state.audio_mode = 'full' if audio_mode.startswith("📄") else 'sentence'
-    
-    if st.session_state.mobile_mode:
-        # モバイルモード：サーバー生成音声をメイン機能に
-        st.markdown("**🔊 音声再生（iOS Chrome最適化）**")
-        
-        if st.button("🎵 音声再生（通常速度）", key="mobile_main_normal", use_container_width=True):
-            play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.0)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🐌 ゆっくり再生", key="mobile_main_slow", use_container_width=True):
-                play_server_generated_audio(current_sentence['sentence_content_en'], rate=0.8)
-        with col2:
-            if st.button("🚀 早め再生", key="mobile_main_fast", use_container_width=True):
-                play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.2)
-        
-        # ブラウザTTSは補助機能として
-        with st.expander("🔧 ブラウザ音声（実験的）"):
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                if st.button("🔊", key="mobile_tts_normal"):
-                    play_text_to_speech(current_sentence['sentence_content_en'], rate=1.0)
-            with col2:
-                if st.button("🐌", key="mobile_tts_slow"):
-                    play_text_to_speech(current_sentence['sentence_content_en'], rate=0.7)
-            with col3:
-                if st.button("🚀", key="mobile_tts_fast"):
-                    play_text_to_speech(current_sentence['sentence_content_en'], rate=1.3)
-            with col4:
-                if st.button("⏹️", key="mobile_tts_stop"):
-                    st.components.v1.html("""
-                        <script>window.speechSynthesis.cancel();</script>
-                    """, height=0)
-            st.caption("⚠️ iOS Chromeでは動作しない場合があります")
-        
-    else:
-        # デスクトップモード：両方の選択肢を提供
-        st.markdown("**🔊 音声再生**")
-        
-        # デスクトップではブラウザTTSをメインに
-        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-        
-        with col1:
-            if st.button("🔊 通常速度（TTS）"):
-                play_text_to_speech(current_sentence['sentence_content_en'], rate=1.0)
-        with col2:
-            if st.button("🐌 ゆっくり（TTS）"):
-                play_text_to_speech(current_sentence['sentence_content_en'], rate=0.7)
-        with col3:
-            if st.button("🚀 早め（TTS）"):
-                play_text_to_speech(current_sentence['sentence_content_en'], rate=1.3)
-        with col4:
-            if st.button("⏹️ 停止"):
-                st.components.v1.html("""
-                    <script>window.speechSynthesis.cancel();</script>
-                """, height=0)
-        
-        # デスクトップでも高品質オプションを提供
-        st.markdown("**🎵 高品質音声**")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            if st.button("🎵 高品質（通常）", key="desktop_hq_normal"):
-                play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.0)
-        with col2:
-            if st.button("🎵 高品質（ゆっくり）", key="desktop_hq_slow"):
-                play_server_generated_audio(current_sentence['sentence_content_en'], rate=0.8)
-        with col3:
-            if st.button("🎵 高品質（早め）", key="desktop_hq_fast"):
-                play_server_generated_audio(current_sentence['sentence_content_en'], rate=1.2)
-    
-    # 翻訳表示/非表示
-    if st.session_state.mobile_mode:
-        # モバイル：トグルボタン
-        if st.button(
-            "👀 日本語訳を表示" if not st.session_state.show_translation else "🙈 日本語訳を隠す",
-            key="mobile_translation_toggle",
-            use_container_width=True
-        ):
-            st.session_state.show_translation = not st.session_state.show_translation
-    else:
-        # デスクトップ：中央ボタン
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("👀 日本語訳を表示" if not st.session_state.show_translation else "🙈 日本語訳を隠す"):
-                st.session_state.show_translation = not st.session_state.show_translation
-    
-    # 翻訳表示
-    if st.session_state.show_translation:
-        highlighted_translation = highlight_words_in_japanese(
-            current_sentence['translated_sentence'], 
-            words_dict, 
-            word_master
-        )
-        st.markdown(f'''
-        <div class="translation-card">
-            <h4>🇯🇵 日本語訳:</h4>
-            <div style="font-size: 1.1rem;">{highlighted_translation}</div>
-        </div>
-        ''', unsafe_allow_html=True)
-    
-    # 含有単語表示
+
+    # 音声速度選択（コンパクト）
+    speed_options = {"🐌": 0.7, "🎵": 1.0, "🚀": 1.3}
+    speed_cols = st.columns(3)
+    for i, (icon, rate) in enumerate(speed_options.items()):
+        with speed_cols[i]:
+            selected = st.session_state.audio_speed == rate
+            btn_label = f"{'●' if selected else '○'} {icon}"
+            if st.button(btn_label, key=f"speed_{rate}", use_container_width=True):
+                st.session_state.audio_speed = rate
+                st.rerun()
+
+    # ========== 学習対象単語（コンパクト表示） ==========
+    words_dict = parse_words_dict(current_sentence.get('words_contained_dict', '{}'))
     if words_dict:
-        st.markdown("**📚 学習対象単語:**")
-        words_html = "".join([f'<span class="word-chip">{word}</span>' for word in words_dict.values()])
-        st.markdown(words_html, unsafe_allow_html=True)
-    
-    # 理解度チェック
+        words_html = " ".join([f'<span class="word-chip">{word}</span>' for word in words_dict.values()])
+        st.markdown(f'<div style="text-align:center; padding:0.5rem 0;">{words_html}</div>', unsafe_allow_html=True)
+
+    # ========== 大きな理解度ボタン ==========
     st.markdown("---")
-    
-    if st.session_state.mobile_mode:
-        # モバイルモード：理解度ボタンを縦並びに
-        st.markdown('<div class="understanding-buttons">', unsafe_allow_html=True)
-        understanding_level = None
-        
-        if st.button("😕 難しい", key="mobile_difficult", use_container_width=True):
+
+    col1, col2, col3 = st.columns(3)
+
+    understanding_level = None
+
+    with col1:
+        if st.button("😕\n難しい", key="understand_difficult", use_container_width=True):
             understanding_level = "difficult"
-        if st.button("😐 普通", key="mobile_normal", use_container_width=True):
+
+    with col2:
+        if st.button("😐\n普通", key="understand_normal", use_container_width=True):
             understanding_level = "normal"
-        if st.button("😊 簡単", key="mobile_easy", use_container_width=True):
+
+    with col3:
+        if st.button("😊\n簡単", key="understand_easy", use_container_width=True):
             understanding_level = "easy"
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        # デスクトップモード：横並び
-        col1, col2, col3 = st.columns(3)
-        
-        understanding_level = None
-        with col1:
-            if st.button("😕 難しい", key="desktop_difficult"):
-                understanding_level = "difficult"
-        with col2:
-            if st.button("😐 普通", key="desktop_normal"):
-                understanding_level = "normal"
-        with col3:
-            if st.button("😊 簡単", key="desktop_easy"):
-                understanding_level = "easy"
-    
+
     # 理解度記録と次の文章へ
     if understanding_level:
         sentence_key = f"{current_sentence['group_id']}_{current_sentence['sentence_id']}"
         st.session_state.learning_progress[sentence_key] = understanding_level
         st.session_state.studied_today += 1
         st.session_state.current_sentence_idx += 1
-        st.session_state.show_translation = False
-        
-        level_names = {'difficult': '難しい', 'normal': '普通', 'easy': '簡単'}
-        st.success(f"理解度を記録しました: {level_names[understanding_level]}")
+
         st.rerun()
     
 
@@ -1545,182 +1306,83 @@ def shadowing_tab():
     else:
         content = st.session_state.generated_content
         current_idx = st.session_state.current_shadowing_idx
-        
-        # 進捗表示とドラッグ可能なスライダー
-        progress = (current_idx + 1) / len(content)
-        
-        # ドラッグ可能なプログレススライダー
-        st.markdown("### 📊 進捗とナビゲーション")
-        
-        # 現在の位置を明確に表示
-        current_pos = current_idx + 1
-        total_sentences = len(content)
-        st.markdown(f"**現在: {current_pos} / {total_sentences} 文**")
-        
-        new_shadowing_idx = st.slider(
-            "文章を選択",
-            min_value=0,
-            max_value=len(content) - 1,
-            value=current_idx,
-            format="文 %d",
-            help="スライダーをドラッグして任意の文章に移動できます",
-            key="shadowing_slider",
-            label_visibility="collapsed"
-        )
-        
-        # スライダーの値が変更された場合の処理
-        if new_shadowing_idx != current_idx:
-            st.session_state.current_shadowing_idx = new_shadowing_idx
-            st.session_state.show_shadowing_translation = False
-            st.rerun()
-        
-        # 進捗表示
-        st.progress(progress)
-        st.markdown(f'<p class="progress-text">進捗: {current_idx + 1} / {len(content)} 文</p>', unsafe_allow_html=True)
-        
-        # 現在の文章表示
-        current_sentence = content[current_idx]
-        
-        st.markdown(f'''
-        <div class="sentence-card">
-            <h3>🎯 シャドーイング練習 - 文 {current_idx + 1}</h3>
-            <h4>英文:</h4>
-            <p style="font-size: 1.2rem; line-height: 1.6;">{current_sentence["english"]}</p>
-        </div>
-        ''', unsafe_allow_html=True)
-        
-        # 音声再生コントロール
-        st.markdown("### 🔊 音声再生")
-        
-        # 音声モード選択
-        audio_mode_shadowing = st.radio(
-            "再生モード",
-            ["📄 全文一括再生", "📝 1文ずつ再生"],
-            index=0 if st.session_state.audio_mode == 'full' else 1,
-            horizontal=True,
-            key="shadowing_audio_mode"
-        )
-        current_audio_mode = 'full' if audio_mode_shadowing.startswith("📄") else 'sentence'
-        
-        if current_audio_mode == 'full':
-            # 全文一括再生モード - サーバー生成音声をメイン機能に
-            st.markdown("**🎵 全文音声再生（高品質）**")
-            
-            col1, col2, col3 = st.columns(3)
+
+        # 設定（折りたたみ）
+        with st.expander("⚙️ 設定", expanded=False):
+            col1, col2 = st.columns([3, 1])
             with col1:
-                if st.button("🎵 全文通常速度", key="shadowing_main_full_normal"):
-                    full_text = " ".join([item["english"] for item in content])
-                    play_server_generated_audio(full_text, rate=1.0)
+                jump_to = st.number_input(
+                    "文番号へジャンプ",
+                    min_value=1,
+                    max_value=len(content),
+                    value=current_idx + 1,
+                    step=1,
+                    key="shadowing_jump"
+                )
             with col2:
-                if st.button("🎵 全文ゆっくり", key="shadowing_main_full_slow"):
-                    full_text = " ".join([item["english"] for item in content])
-                    play_server_generated_audio(full_text, rate=0.8)
-            with col3:
-                if st.button("🎵 全文早め", key="shadowing_main_full_fast"):
-                    full_text = " ".join([item["english"] for item in content])
-                    play_server_generated_audio(full_text, rate=1.2)
-            
-            # ブラウザTTSは実験的機能として
-            with st.expander("🔧 ブラウザ音声（実験的）"):
-                col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-                with col1:
-                    if st.button("🔊 全文通常", key="shadowing_tts_full_normal"):
-                        full_text = " ".join([item["english"] for item in content])
-                        play_text_to_speech(full_text, rate=1.0)
-                with col2:
-                    if st.button("🔊 全文ゆっくり", key="shadowing_tts_full_slow"):
-                        full_text = " ".join([item["english"] for item in content])
-                        play_text_to_speech(full_text, rate=0.7)
-                with col3:
-                    if st.button("🔊 全文早め", key="shadowing_tts_full_fast"):
-                        full_text = " ".join([item["english"] for item in content])
-                        play_text_to_speech(full_text, rate=1.3)
-                with col4:
-                    if st.button("⏹️ 停止", key="shadowing_tts_full_stop"):
-                        st.components.v1.html("""
-                            <script>window.speechSynthesis.cancel();</script>
-                        """, height=0)
-                st.caption("⚠️ iOS Chromeでは動作しない場合があります")
-                
-        else:
-            # 1文ずつ再生モード - サーバー生成音声をメイン機能に
-            st.markdown("**🎵 文章音声再生（高品質）**")
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if st.button("🎵 通常速度", key="shadowing_main_single_normal"):
-                    play_server_generated_audio(current_sentence["english"], rate=1.0)
-            with col2:
-                if st.button("🎵 ゆっくり", key="shadowing_main_single_slow"):
-                    play_server_generated_audio(current_sentence["english"], rate=0.8)
-            with col3:
-                if st.button("🎵 早め", key="shadowing_main_single_fast"):
-                    play_server_generated_audio(current_sentence["english"], rate=1.2)
-            
-            # ブラウザTTSは実験的機能として
-            with st.expander("🔧 ブラウザ音声（実験的）"):
-                col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-                with col1:
-                    if st.button("🔊 通常", key="shadowing_tts_single_normal"):
-                        play_text_to_speech(current_sentence["english"], rate=1.0)
-                with col2:
-                    if st.button("🔊 ゆっくり", key="shadowing_tts_single_slow"):
-                        play_text_to_speech(current_sentence["english"], rate=0.7)
-                with col3:
-                    if st.button("🔊 早め", key="shadowing_tts_single_fast"):
-                        play_text_to_speech(current_sentence["english"], rate=1.3)
-                with col4:
-                    if st.button("⏹️ 停止", key="shadowing_tts_single_stop"):
-                        st.components.v1.html("""
-                            <script>window.speechSynthesis.cancel();</script>
-                        """, height=0)
-                st.caption("⚠️ iOS Chromeでは動作しない場合があります")
-        
-        # 翻訳表示/非表示
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("👀 日本語訳を表示" if not st.session_state.show_shadowing_translation else "🙈 日本語訳を隠す", key="shadowing_translation"):
-                st.session_state.show_shadowing_translation = not st.session_state.show_shadowing_translation
-        
-        # 翻訳表示
-        if st.session_state.show_shadowing_translation:
-            st.markdown(f'''
-            <div class="translation-card">
-                <h4>🇯🇵 日本語訳:</h4>
-                <p style="font-size: 1.1rem;">{current_sentence["japanese"]}</p>
-            </div>
-            ''', unsafe_allow_html=True)
-        
-        # ナビゲーションボタン
-        st.markdown("---")
-        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-        
-        with col1:
-            if st.button("⬅️ 前の文", key="shadowing_prev") and current_idx > 0:
-                st.session_state.current_shadowing_idx -= 1
-                st.session_state.show_shadowing_translation = False
-                st.rerun()
-        
-        with col2:
-            if st.button("🔄 リピート", key="shadowing_repeat"):
-                play_text_to_speech(current_sentence["english"], rate=1.0)
-        
-        with col3:
-            if st.button("次の文 ➡️", key="shadowing_next"):
-                if current_idx < len(content) - 1:
-                    st.session_state.current_shadowing_idx += 1
-                    st.session_state.show_shadowing_translation = False
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("移動", key="shadowing_jump_btn"):
+                    st.session_state.current_shadowing_idx = jump_to - 1
                     st.rerun()
-                else:
-                    st.success("🎉 記事の最後まで完了しました！")
-        
-        with col4:
-            if st.button("🆕 新しい記事", key="new_article"):
+
+            if st.button("🆕 新しい記事を生成", key="new_article", use_container_width=True):
                 st.session_state.generated_content = []
                 st.session_state.current_shadowing_idx = 0
                 st.session_state.show_shadowing_translation = False
                 st.rerun()
-        
+
+        # ========== シンプルな進捗表示 ==========
+        current_pos = current_idx + 1
+        total_sentences = len(content)
+        st.markdown(f'<div class="progress-simple">{current_pos} / {total_sentences}</div>', unsafe_allow_html=True)
+
+        # ========== フリップカード ==========
+        current_sentence = content[current_idx]
+        card_id = f"shadow_{current_idx}"
+
+        flip_card_html = create_flip_card(
+            current_sentence["english"],
+            current_sentence["japanese"],
+            card_id
+        )
+        st.components.v1.html(flip_card_html, height=280)
+
+        # ========== ナビゲーション + 音声ボタン ==========
+        col1, col2, col3 = st.columns([1.5, 1, 1.5])
+
+        with col1:
+            if st.button("⬅️", key="shadowing_prev", use_container_width=True,
+                         disabled=(current_idx == 0)):
+                st.session_state.current_shadowing_idx -= 1
+                st.rerun()
+
+        with col2:
+            # 音声ボタン
+            if 'shadowing_audio_speed' not in st.session_state:
+                st.session_state.shadowing_audio_speed = 1.0
+
+            if st.button("🔊", key="shadowing_play_audio", use_container_width=True):
+                play_server_generated_audio(current_sentence["english"], rate=st.session_state.shadowing_audio_speed)
+
+        with col3:
+            if st.button("➡️", key="shadowing_next", use_container_width=True):
+                if current_idx < len(content) - 1:
+                    st.session_state.current_shadowing_idx += 1
+                    st.rerun()
+                else:
+                    st.success("🎉 記事の最後まで完了しました！")
+
+        # 音声速度選択（コンパクト）
+        speed_options = {"🐌": 0.7, "🎵": 1.0, "🚀": 1.3}
+        speed_cols = st.columns(3)
+        for i, (icon, rate) in enumerate(speed_options.items()):
+            with speed_cols[i]:
+                selected = st.session_state.shadowing_audio_speed == rate
+                btn_label = f"{'●' if selected else '○'} {icon}"
+                if st.button(btn_label, key=f"shadowing_speed_{rate}", use_container_width=True):
+                    st.session_state.shadowing_audio_speed = rate
+                    st.rerun()
+
         # 記事全体表示オプション
         with st.expander("📄 記事全体を表示"):
             for i, sentence_pair in enumerate(content):

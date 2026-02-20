@@ -5,3 +5,5 @@ google-generativeai>=0.3.0
 gtts>=2.3.0
 requests>=2.28.0
 python-dotenv>=1.0.0
+# オプション: 英国男性の高品質TTS（voices/ に en_GB モデルを配置するか PIPER_VOICE_PATH を設定）
+# piper-tts>=1.2.0

@@ -1,1 +1,16 @@
 .env
+.DS_Store
+
+venv/
+__pycache__/
+
+dataSources/
+output/
+data/
+
+*.ipynb
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz

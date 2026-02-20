@@ -370,18 +370,11 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500&family=Noto+Sans+JP:wght@400;500&display=swap');
 
-    /* 画面全体のスクロールを防止 */
-    html, body {{
-        overflow: hidden;
-        touch-action: none;
-        overscroll-behavior: none;
-    }}
-
     .flip-container-{card_id} {{
         perspective: 1000px;
         width: 100%;
         margin: 0.5rem 0;
-        touch-action: pan-x;
+        touch-action: manipulation;
     }}
 
     .flip-card-{card_id} {{
@@ -409,7 +402,7 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
         align-items: center;
         text-align: center;
         box-sizing: border-box;
-        overflow: hidden;
+        overflow: visible;
     }}
 
     .flip-card-front-{card_id} {{
@@ -431,12 +424,10 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
         overflow-y: auto;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-        touch-action: pan-y;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
+        overscroll-behavior-y: contain;
+        touch-action: pan-y pinch-zoom;
         padding: 0.25rem 0.5rem;
+        text-align: center;
     }}
 
     .flip-card-text {{
@@ -509,17 +500,17 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
     </style>
 
     <div class="flip-container-{card_id}">
-        <div class="flip-card-{card_id}" id="flipCard{card_id}" onclick="toggleFlip{card_id}()">
+        <div class="flip-card-{card_id}" id="flipCard{card_id}">
             <div class="flip-card-front-{card_id}">
                 <div class="flip-card-label">English</div>
-                <div class="flip-card-scroll-container" onclick="event.stopPropagation();">
+                <div class="flip-card-scroll-container">
                     <div class="flip-card-text">{escaped_en}</div>
                 </div>
                 <div class="flip-card-hint">{tap_hint}</div>
             </div>
             <div class="flip-card-back-{card_id}">
                 <div class="flip-card-label">日本語</div>
-                <div class="flip-card-scroll-container" onclick="event.stopPropagation();">
+                <div class="flip-card-scroll-container">
                     <div class="flip-card-text">{escaped_jp}</div>
                 </div>
                 <div class="flip-card-hint">tap to return</div>
@@ -528,42 +519,69 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
     </div>
 
     <script>
-    function toggleFlip{card_id}() {{
-        const card = document.getElementById('flipCard{card_id}');
-        card.classList.toggle('flipped');
-    }}
-
-    // カード内部スクロール制御
     (function() {{
+        let isTouchMoving = false;
+        let touchStartInScrollContainer = false;
+
+        // フリップ処理（タップでのみ発火、スクロール中は無視）
+        window.toggleFlip{card_id} = function(e) {{
+            if (isTouchMoving || touchStartInScrollContainer) {{
+                return;
+            }}
+            const card = document.getElementById('flipCard{card_id}');
+            card.classList.toggle('flipped');
+        }};
+
+        // カード内部スクロール制御
         const scrollContainers = document.querySelectorAll('.flip-card-scroll-container');
 
         scrollContainers.forEach(function(container) {{
-            // タッチ開始位置を記録
-            let startY = 0;
-            let startScrollTop = 0;
-
             container.addEventListener('touchstart', function(e) {{
-                startY = e.touches[0].pageY;
-                startScrollTop = container.scrollTop;
+                touchStartInScrollContainer = true;
+                isTouchMoving = false;
             }}, {{ passive: true }});
 
             container.addEventListener('touchmove', function(e) {{
-                const currentY = e.touches[0].pageY;
-                const deltaY = startY - currentY;
-
-                // コンテンツがスクロール可能かチェック
-                const isScrollable = container.scrollHeight > container.clientHeight;
-
-                if (isScrollable) {{
-                    // 上端または下端に達した場合のみ伝播を許可
-                    const atTop = container.scrollTop <= 0 && deltaY < 0;
-                    const atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight && deltaY > 0;
-
-                    if (!atTop && !atBottom) {{
-                        e.stopPropagation();
-                    }}
-                }}
+                isTouchMoving = true;
             }}, {{ passive: true }});
+
+            container.addEventListener('touchend', function(e) {{
+                // スクロールコンテナ内でタッチ終了時、少し遅延してリセット
+                setTimeout(function() {{
+                    touchStartInScrollContainer = false;
+                    isTouchMoving = false;
+                }}, 100);
+            }}, {{ passive: true }});
+        }});
+
+        // カード全体のタッチイベント
+        const flipCard = document.getElementById('flipCard{card_id}');
+        flipCard.addEventListener('touchstart', function(e) {{
+            if (!e.target.closest('.flip-card-scroll-container')) {{
+                touchStartInScrollContainer = false;
+            }}
+            isTouchMoving = false;
+        }}, {{ passive: true }});
+
+        flipCard.addEventListener('touchmove', function(e) {{
+            isTouchMoving = true;
+        }}, {{ passive: true }});
+
+        flipCard.addEventListener('touchend', function(e) {{
+            if (!isTouchMoving && !touchStartInScrollContainer) {{
+                toggleFlip{card_id}();
+            }}
+            setTimeout(function() {{
+                isTouchMoving = false;
+                touchStartInScrollContainer = false;
+            }}, 100);
+        }}, {{ passive: true }});
+
+        // クリックイベント（デスクトップ用）
+        flipCard.addEventListener('click', function(e) {{
+            if (!e.target.closest('.flip-card-scroll-container')) {{
+                toggleFlip{card_id}();
+            }}
         }});
 
         // スワイプジェスチャー検出（カード外のみ）

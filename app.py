@@ -105,7 +105,7 @@ def load_custom_css():
     .main-header {
         font-size: 1.5rem;
         font-weight: bold;
-        color: #1f77b4;
+        color: #1a1a1a;
         text-align: center;
         margin-bottom: 0.5rem;
     }
@@ -113,40 +113,44 @@ def load_custom_css():
     /* シンプルな進捗表示 */
     .progress-simple {
         text-align: center;
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: #1a1a1a;
         padding: 0.5rem 0;
         margin-bottom: 0.5rem;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        letter-spacing: 0.02em;
     }
 
     /* 安全なハイライト用CSS */
     .vocab-highlight {
-        background-color: #ffeb3b !important;
+        background: linear-gradient(180deg, transparent 60%, #ffd54f 60%) !important;
         color: #000 !important;
-        font-weight: bold !important;
-        padding: 2px 4px !important;
-        border-radius: 3px !important;
+        font-weight: 500 !important;
+        padding: 0 2px !important;
+        border-radius: 0 !important;
         border: none !important;
     }
 
     .japanese-highlight {
-        background-color: #c8e6c9 !important;
+        background: linear-gradient(180deg, transparent 60%, #a5d6a7 60%) !important;
         color: #000 !important;
-        font-weight: bold !important;
-        padding: 2px 4px !important;
-        border-radius: 3px !important;
+        font-weight: 500 !important;
+        padding: 0 2px !important;
+        border-radius: 0 !important;
         border: none !important;
     }
 
     .word-chip {
-        background-color: #007bff;
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        margin: 0.2rem;
+        background-color: #1a1a1a;
+        color: #fafafa;
+        padding: 0.25rem 0.6rem;
+        border-radius: 2px;
+        font-size: 0.8rem;
+        margin: 0.15rem;
         display: inline-block;
+        font-family: 'Source Serif 4', Georgia, serif;
+        letter-spacing: 0.01em;
     }
 
     /* ========== 大きなナビゲーションボタン ========== */
@@ -157,7 +161,7 @@ def load_custom_css():
         font-size: 2rem;
         padding: 1rem;
         min-height: 60px;
-        border-radius: 12px;
+        border-radius: 4px;
         cursor: pointer;
         user-select: none;
         transition: transform 0.1s, background-color 0.2s;
@@ -182,7 +186,7 @@ def load_custom_css():
         align-items: center;
         justify-content: center;
         padding: 1rem 0.5rem;
-        border-radius: 12px;
+        border-radius: 4px;
         cursor: pointer;
         min-height: 70px;
         font-size: 1.8rem;
@@ -208,83 +212,164 @@ def load_custom_css():
         cursor: pointer;
     }
 
-    /* ========== Streamlitボタン上書き（iPhone SE向け） ========== */
+    /* ========== iPhone SE向けカラム強制横並び ========== */
+    @media (max-width: 400px) {
+        /* Streamlit columnsコンテナを強制的にflexで横並びに */
+        [data-testid="stHorizontalBlock"] {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+        }
+
+        [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+            flex: 1 !important;
+            min-width: 0 !important;
+            width: auto !important;
+        }
+
+        /* ボタンサイズ調整 */
+        [data-testid="stHorizontalBlock"] .stButton > button {
+            min-height: 48px !important;
+            font-size: 0.9rem !important;
+            padding: 0.5rem 0.25rem !important;
+            white-space: nowrap !important;
+        }
+    }
+
+    /* ========== Streamlitボタン上書き ========== */
     .stButton > button {
-        min-height: 50px !important;
-        font-size: 1.1rem !important;
-        border-radius: 10px !important;
-        padding: 0.8rem 1rem !important;
+        min-height: 48px !important;
+        font-size: 1rem !important;
+        border-radius: 4px !important;
+        padding: 0.75rem 1rem !important;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+        font-weight: 500 !important;
+        border: 1px solid #e0e0e0 !important;
+        background: #fafafa !important;
+        color: #1a1a1a !important;
+        transition: all 0.15s ease !important;
+    }
+
+    .stButton > button:hover {
+        background: #f0f0f0 !important;
+        border-color: #ccc !important;
+    }
+
+    .stButton > button:active {
+        background: #e8e8e8 !important;
+        transform: scale(0.98);
     }
 
     /* 理解度ボタン専用 */
     [data-testid="stHorizontalBlock"] .stButton > button {
-        min-height: 65px !important;
-        font-size: 1.3rem !important;
+        min-height: 56px !important;
+        font-size: 1.1rem !important;
     }
 
     /* ========== 旧スタイル（後方互換性） ========== */
     .sentence-card {
-        background-color: #f8f9fa !important;
+        background-color: #fafafa !important;
         padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #1f77b4;
+        border-radius: 4px;
+        border-left: 2px solid #1a1a1a;
         margin: 1rem 0;
-        color: #212529 !important;
+        color: #1a1a1a !important;
     }
 
     .sentence-card p, .sentence-card h3, .sentence-card h4 {
-        color: #212529 !important;
+        color: #1a1a1a !important;
     }
 
     .translation-card {
-        background-color: #e8f4fd !important;
+        background-color: #f5f5f5 !important;
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: 4px;
         margin: 0.5rem 0;
-        border: 1px solid #bee5eb;
-        color: #495057 !important;
+        border: 1px solid #e0e0e0;
+        color: #333 !important;
     }
 
     .translation-card p, .translation-card h4 {
-        color: #495057 !important;
+        color: #333 !important;
     }
 
     /* ダークモード対応 */
     [data-theme="dark"] .sentence-card {
-        background-color: #343a40;
-        color: #f8f9fa;
-        border-left: 4px solid #4dabf7;
+        background-color: #2a2a2a;
+        color: #fafafa;
+        border-left: 2px solid #fafafa;
     }
 
     [data-theme="dark"] .translation-card {
-        background-color: #495057;
-        color: #f8f9fa;
-        border: 1px solid #6c757d;
+        background-color: #333;
+        color: #fafafa;
+        border: 1px solid #444;
     }
 
     [data-theme="dark"] .progress-simple {
-        color: #f8f9fa;
+        color: #fafafa;
+    }
+
+    [data-theme="dark"] .word-chip {
+        background-color: #fafafa;
+        color: #1a1a1a;
+    }
+
+    [data-theme="dark"] .stButton > button {
+        background: #2a2a2a !important;
+        color: #fafafa !important;
+        border-color: #444 !important;
+    }
+
+    [data-theme="dark"] .stButton > button:hover {
+        background: #333 !important;
     }
 
     .progress-text {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 500;
+    }
+
+    /* ========== expander内のボタン調整 ========== */
+    [data-testid="stExpander"] [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True):
-    """フリップカード用HTML/CSS/JSを生成（タップで英文↔和訳を切り替え）"""
-    import html as html_module
+def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, highlight_words=None):
+    """フリップカード用HTML/CSS/JSを生成（タップで英文↔和訳を切り替え）
 
-    # テキストをエスケープ
-    escaped_en = html_module.escape(english_text)
+    Args:
+        highlight_words: ハイライトする単語のリスト（学習対象単語）
+    """
+    import html as html_module
+    import re
+
+    # テキストをエスケープしつつ、学習対象単語をハイライト
+    def escape_and_highlight(text, words_to_highlight=None):
+        escaped = html_module.escape(text)
+        if words_to_highlight:
+            for word in words_to_highlight:
+                pattern = re.compile(re.escape(html_module.escape(word)), re.IGNORECASE)
+                escaped = pattern.sub(
+                    f'<span class="target-word">{html_module.escape(word)}</span>',
+                    escaped
+                )
+        return escaped
+
+    escaped_en = escape_and_highlight(english_text, highlight_words)
     escaped_jp = html_module.escape(japanese_text)
 
-    tap_hint = "👆 タップで翻訳" if show_tap_hint else ""
+    tap_hint = "tap to translate" if show_tap_hint else ""
 
     flip_card_html = f"""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500&family=Noto+Sans+JP:wght@400;500&display=swap');
+
     .flip-container-{card_id} {{
         perspective: 1000px;
         width: 100%;
@@ -295,7 +380,7 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True):
         position: relative;
         width: 100%;
         min-height: 200px;
-        transition: transform 0.6s;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         transform-style: preserve-3d;
         cursor: pointer;
     }}
@@ -309,57 +394,87 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True):
         width: 100%;
         min-height: 200px;
         backface-visibility: hidden;
-        border-radius: 16px;
-        padding: 1.5rem;
+        border-radius: 4px;
+        padding: 1.5rem 1.25rem;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-sizing: border-box;
     }}
 
     .flip-card-front-{card_id} {{
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: #fafafa;
+        color: #1a1a1a;
+        border: 1px solid #e0e0e0;
     }}
 
     .flip-card-back-{card_id} {{
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
+        background: #1a1a1a;
+        color: #fafafa;
         transform: rotateY(180deg);
+        border: 1px solid #333;
     }}
 
     .flip-card-text {{
-        font-size: 1.3rem;
+        font-family: 'Source Serif 4', Georgia, serif;
+        font-size: 1.15rem;
+        line-height: 1.9;
+        font-weight: 400;
+        padding: 0.5rem 0;
+        letter-spacing: 0.01em;
+    }}
+
+    .flip-card-back-{card_id} .flip-card-text {{
+        font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+        font-size: 1.05rem;
         line-height: 1.8;
-        font-weight: 500;
-        padding: 0.5rem;
     }}
 
     .flip-card-hint {{
-        font-size: 0.9rem;
-        opacity: 0.8;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 0.7rem;
+        opacity: 0.4;
         margin-top: 1rem;
+        text-transform: lowercase;
+        letter-spacing: 0.05em;
     }}
 
     .flip-card-label {{
-        font-size: 0.8rem;
-        opacity: 0.7;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 0.65rem;
+        opacity: 0.35;
         margin-bottom: 0.5rem;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.15em;
+        font-weight: 500;
+    }}
+
+    /* 学習対象単語のハイライト */
+    .target-word {{
+        background: linear-gradient(180deg, transparent 60%, #ffd54f 60%);
+        padding: 0 2px;
+        font-weight: 500;
+    }}
+
+    .flip-card-back-{card_id} .target-word {{
+        background: linear-gradient(180deg, transparent 60%, #5c6bc0 60%);
+        color: #fff;
     }}
 
     /* iPhone SE向け調整 */
     @media (max-width: 400px) {{
         .flip-card-text {{
-            font-size: 1.1rem;
-            line-height: 1.6;
+            font-size: 1.05rem;
+            line-height: 1.75;
         }}
         .flip-card-front-{card_id}, .flip-card-back-{card_id} {{
             min-height: 180px;
             padding: 1rem;
+        }}
+        .flip-card-back-{card_id} .flip-card-text {{
+            font-size: 0.95rem;
         }}
     }}
     </style>
@@ -374,7 +489,7 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True):
             <div class="flip-card-back-{card_id}">
                 <div class="flip-card-label">日本語</div>
                 <div class="flip-card-text">{escaped_jp}</div>
-                <div class="flip-card-hint">👆 タップで英文に戻る</div>
+                <div class="flip-card-hint">tap to return</div>
             </div>
         </div>
     </div>
@@ -872,7 +987,7 @@ def generate_content_with_gemini(genre, topic):
     """Gemini APIでコンテンツ生成"""
     try:
         # 新しいモデル名に変更
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         prompt = GENRE_PROMPTS[genre]["prompt"].format(topic=topic)
         
         response = model.generate_content(prompt)
@@ -1118,27 +1233,26 @@ def word_learning_tab(df, word_master):
                 filtered_df = df.copy()
 
         # ジャンプ機能
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            jump_to = st.number_input(
-                "文章番号へジャンプ",
-                min_value=1,
-                max_value=len(filtered_df) if learning_mode != "特定グループ" else len(filtered_df),
-                value=st.session_state.current_sentence_idx + 1,
-                step=1
-            )
-        with col2:
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("移動", key="jump_btn"):
+        jump_to = st.number_input(
+            "文章番号へジャンプ",
+            min_value=1,
+            max_value=len(filtered_df) if learning_mode != "特定グループ" else len(filtered_df),
+            value=st.session_state.current_sentence_idx + 1,
+            step=1
+        )
+        # 「移動」と「リセット」ボタンを横並び
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button("移動", key="jump_btn", use_container_width=True):
                 st.session_state.current_sentence_idx = jump_to - 1
                 st.rerun()
-
-        if st.button("🔄 リセット", use_container_width=True):
-            st.session_state.current_sentence_idx = 0
-            st.session_state.show_translation = False
-            if 'shuffled_indices' in st.session_state:
-                del st.session_state.shuffled_indices
-            st.rerun()
+        with btn_col2:
+            if st.button("リセット", key="reset_btn", use_container_width=True):
+                st.session_state.current_sentence_idx = 0
+                st.session_state.show_translation = False
+                if 'shuffled_indices' in st.session_state:
+                    del st.session_state.shuffled_indices
+                st.rerun()
 
     # データ準備
     if learning_mode == "特定グループ":
@@ -1166,7 +1280,11 @@ def word_learning_tab(df, word_master):
     japanese_text = current_sentence['translated_sentence']
     card_id = f"card_{current_idx}"
 
-    flip_card_html = create_flip_card(english_text, japanese_text, card_id)
+    # 学習対象単語を取得
+    words_dict = parse_words_dict(current_sentence.get('words_contained_dict', '{}'))
+    highlight_words = list(words_dict.values()) if words_dict else None
+
+    flip_card_html = create_flip_card(english_text, japanese_text, card_id, highlight_words=highlight_words)
     st.components.v1.html(flip_card_html, height=280)
 
     # ========== ナビゲーション + 音声ボタン ==========
@@ -1203,7 +1321,6 @@ def word_learning_tab(df, word_master):
                 st.rerun()
 
     # ========== 学習対象単語（コンパクト表示） ==========
-    words_dict = parse_words_dict(current_sentence.get('words_contained_dict', '{}'))
     if words_dict:
         words_html = " ".join([f'<span class="word-chip">{word}</span>' for word in words_dict.values()])
         st.markdown(f'<div style="text-align:center; padding:0.5rem 0;">{words_html}</div>', unsafe_allow_html=True)
@@ -1309,27 +1426,26 @@ def shadowing_tab():
 
         # 設定（折りたたみ）
         with st.expander("⚙️ 設定", expanded=False):
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                jump_to = st.number_input(
-                    "文番号へジャンプ",
-                    min_value=1,
-                    max_value=len(content),
-                    value=current_idx + 1,
-                    step=1,
-                    key="shadowing_jump"
-                )
-            with col2:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("移動", key="shadowing_jump_btn"):
+            jump_to = st.number_input(
+                "文番号へジャンプ",
+                min_value=1,
+                max_value=len(content),
+                value=current_idx + 1,
+                step=1,
+                key="shadowing_jump"
+            )
+            # 「移動」と「新しい記事を生成」ボタンを横並び
+            btn_col1, btn_col2 = st.columns(2)
+            with btn_col1:
+                if st.button("移動", key="shadowing_jump_btn", use_container_width=True):
                     st.session_state.current_shadowing_idx = jump_to - 1
                     st.rerun()
-
-            if st.button("🆕 新しい記事を生成", key="new_article", use_container_width=True):
-                st.session_state.generated_content = []
-                st.session_state.current_shadowing_idx = 0
-                st.session_state.show_shadowing_translation = False
-                st.rerun()
+            with btn_col2:
+                if st.button("新規記事", key="new_article", use_container_width=True):
+                    st.session_state.generated_content = []
+                    st.session_state.current_shadowing_idx = 0
+                    st.session_state.show_shadowing_translation = False
+                    st.rerun()
 
         # ========== シンプルな進捗表示 ==========
         current_pos = current_idx + 1

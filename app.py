@@ -370,16 +370,24 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500&family=Noto+Sans+JP:wght@400;500&display=swap');
 
+    /* 画面全体のスクロールを防止 */
+    html, body {{
+        overflow: hidden;
+        touch-action: none;
+        overscroll-behavior: none;
+    }}
+
     .flip-container-{card_id} {{
         perspective: 1000px;
         width: 100%;
         margin: 0.5rem 0;
+        touch-action: pan-x;
     }}
 
     .flip-card-{card_id} {{
         position: relative;
         width: 100%;
-        min-height: 200px;
+        height: 240px;
         transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         transform-style: preserve-3d;
         cursor: pointer;
@@ -392,16 +400,16 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
     .flip-card-front-{card_id}, .flip-card-back-{card_id} {{
         position: absolute;
         width: 100%;
-        min-height: 200px;
+        height: 240px;
         backface-visibility: hidden;
         border-radius: 4px;
-        padding: 1.5rem 1.25rem;
+        padding: 1rem 1rem;
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
         text-align: center;
         box-sizing: border-box;
+        overflow: hidden;
     }}
 
     .flip-card-front-{card_id} {{
@@ -417,6 +425,20 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
         border: 1px solid #333;
     }}
 
+    .flip-card-scroll-container {{
+        flex: 1;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 0.25rem 0.5rem;
+    }}
+
     .flip-card-text {{
         font-family: 'Source Serif 4', Georgia, serif;
         font-size: 1.15rem;
@@ -424,6 +446,7 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
         font-weight: 400;
         padding: 0.5rem 0;
         letter-spacing: 0.01em;
+        max-width: 100%;
     }}
 
     .flip-card-back-{card_id} .flip-card-text {{
@@ -465,16 +488,22 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
 
     /* iPhone SE向け調整 */
     @media (max-width: 400px) {{
+        .flip-card-{card_id} {{
+            height: 220px;
+        }}
         .flip-card-text {{
-            font-size: 1.05rem;
-            line-height: 1.75;
+            font-size: 1.0rem;
+            line-height: 1.7;
         }}
         .flip-card-front-{card_id}, .flip-card-back-{card_id} {{
-            min-height: 180px;
-            padding: 1rem;
+            height: 220px;
+            padding: 0.75rem;
         }}
         .flip-card-back-{card_id} .flip-card-text {{
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+        }}
+        .flip-card-scroll-container {{
+            padding: 0.15rem 0;
         }}
     }}
     </style>
@@ -483,12 +512,16 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
         <div class="flip-card-{card_id}" id="flipCard{card_id}" onclick="toggleFlip{card_id}()">
             <div class="flip-card-front-{card_id}">
                 <div class="flip-card-label">English</div>
-                <div class="flip-card-text">{escaped_en}</div>
+                <div class="flip-card-scroll-container" onclick="event.stopPropagation();">
+                    <div class="flip-card-text">{escaped_en}</div>
+                </div>
                 <div class="flip-card-hint">{tap_hint}</div>
             </div>
             <div class="flip-card-back-{card_id}">
                 <div class="flip-card-label">日本語</div>
-                <div class="flip-card-text">{escaped_jp}</div>
+                <div class="flip-card-scroll-container" onclick="event.stopPropagation();">
+                    <div class="flip-card-text">{escaped_jp}</div>
+                </div>
                 <div class="flip-card-hint">tap to return</div>
             </div>
         </div>
@@ -500,19 +533,61 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
         card.classList.toggle('flipped');
     }}
 
-    // スワイプジェスチャー検出
+    // カード内部スクロール制御
     (function() {{
-        let touchStartX = 0;
-        let touchEndX = 0;
-        const container = document.querySelector('.flip-container-{card_id}');
+        const scrollContainers = document.querySelectorAll('.flip-card-scroll-container');
 
-        container.addEventListener('touchstart', function(e) {{
+        scrollContainers.forEach(function(container) {{
+            // タッチ開始位置を記録
+            let startY = 0;
+            let startScrollTop = 0;
+
+            container.addEventListener('touchstart', function(e) {{
+                startY = e.touches[0].pageY;
+                startScrollTop = container.scrollTop;
+            }}, {{ passive: true }});
+
+            container.addEventListener('touchmove', function(e) {{
+                const currentY = e.touches[0].pageY;
+                const deltaY = startY - currentY;
+
+                // コンテンツがスクロール可能かチェック
+                const isScrollable = container.scrollHeight > container.clientHeight;
+
+                if (isScrollable) {{
+                    // 上端または下端に達した場合のみ伝播を許可
+                    const atTop = container.scrollTop <= 0 && deltaY < 0;
+                    const atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight && deltaY > 0;
+
+                    if (!atTop && !atBottom) {{
+                        e.stopPropagation();
+                    }}
+                }}
+            }}, {{ passive: true }});
+        }});
+
+        // スワイプジェスチャー検出（カード外のみ）
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        const flipContainer = document.querySelector('.flip-container-{card_id}');
+
+        flipContainer.addEventListener('touchstart', function(e) {{
             touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
         }}, false);
 
-        container.addEventListener('touchend', function(e) {{
+        flipContainer.addEventListener('touchend', function(e) {{
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
+            const touchEndY = e.changedTouches[0].screenY;
+
+            // 縦スクロールが主な場合はスワイプ検出しない
+            const deltaX = Math.abs(touchEndX - touchStartX);
+            const deltaY = Math.abs(touchEndY - touchStartY);
+
+            if (deltaX > deltaY) {{
+                handleSwipe();
+            }}
         }}, false);
 
         function handleSwipe() {{
@@ -520,12 +595,9 @@ def create_flip_card(english_text, japanese_text, card_id, show_tap_hint=True, h
             const diff = touchEndX - touchStartX;
 
             if (Math.abs(diff) > swipeThreshold) {{
-                // スワイプでStreamlit側に通知（親フレームにメッセージ送信）
                 if (diff > 0) {{
-                    // 右スワイプ = 前の文章
                     window.parent.postMessage({{type: 'swipe', direction: 'prev'}}, '*');
                 }} else {{
-                    // 左スワイプ = 次の文章
                     window.parent.postMessage({{type: 'swipe', direction: 'next'}}, '*');
                 }}
             }}
@@ -1285,7 +1357,7 @@ def word_learning_tab(df, word_master):
     highlight_words = list(words_dict.values()) if words_dict else None
 
     flip_card_html = create_flip_card(english_text, japanese_text, card_id, highlight_words=highlight_words)
-    st.components.v1.html(flip_card_html, height=280)
+    st.components.v1.html(flip_card_html, height=260)
 
     # ========== ナビゲーション + 音声ボタン ==========
     col1, col2, col3 = st.columns([1.5, 1, 1.5])
@@ -1461,7 +1533,7 @@ def shadowing_tab():
             current_sentence["japanese"],
             card_id
         )
-        st.components.v1.html(flip_card_html, height=280)
+        st.components.v1.html(flip_card_html, height=260)
 
         # ========== ナビゲーション + 音声ボタン ==========
         col1, col2, col3 = st.columns([1.5, 1, 1.5])
